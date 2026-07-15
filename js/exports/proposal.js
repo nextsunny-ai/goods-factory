@@ -44,7 +44,13 @@ var GF_EXPORT_PROPOSAL = (function () {
       + '<tr><th>판매 채널</th><td>' + esc(GF_STORE.channelNames().join(', ') || '-') + '</td></tr>'
       + '<tr><th>목표 일정</th><td>' + esc(plan.deadline || '협의') + '</td></tr>'
       + '<tr><th>제작 예산</th><td>' + (plan.budget ? GF_UI.won(plan.budget) : '협의') + '</td></tr>'
-      + '</table>';
+      + '</table>'
+      + '<h3>왜 굿즈인가</h3><ul>'
+      + '<li><b>체험의 연장 · 기억의 소유</b> — 전시·행사·콘텐츠 경험이 끝나도 굿즈는 집으로 간다. 경험을 물리적으로 소유하게 만드는 장치.</li>'
+      + '<li><b>2차 수익 · 객단가 상승</b> — 본 상품·입장권 외 추가 매출축. 리테일 결합 시 굿즈 지출이 본 매출을 상회하기도 한다.</li>'
+      + '<li><b>바이럴 · 브랜딩</b> — "사고 싶은" 굿즈는 SNS에 자발적으로 퍼진다. 한정·기념성은 최고의 바이럴 연료.</li>'
+      + '<li><b>재방문 · 한정성</b> — 넘버링·시크릿·한정 드롭으로 재구매와 수집 욕구를 설계.</li>'
+      + '</ul>';
 
     /* ---- 2. 시장 분석 ---- */
     h += '<h2>2. 시장 분석</h2>';
@@ -71,9 +77,35 @@ var GF_EXPORT_PROPOSAL = (function () {
     /* ---- 3. 상품 구성 ---- */
     h += '<h2>3. 상품 구성 및 수익 구조</h2>';
     if (sum.rows.length) {
-      h += '<table><thead><tr><th>품목</th><th>사양</th><th class="num">수량</th><th class="num">판매가</th><th class="num">제작비</th><th class="num">완판 매출</th></tr></thead><tbody>';
+      /* 4단 가격 아키텍처 — 접근성(누구나) × 소유욕(비싸도) */
+      var TIERS = [
+        { key: 'ENTRY', label: 'ENTRY · 가성비 볼륨존', desc: '누구나 하나쯤 — 전환율·객단가·기념', max: 10000 },
+        { key: 'CORE', label: 'CORE · 컬렉션 주력', desc: '매출의 허리 — 수집·재구매', max: 30000 },
+        { key: 'PREMIUM', label: 'PREMIUM · 소장 프리미엄', desc: '비싸도 갖고싶은 소장판', max: 60000 },
+        { key: 'GRAIL', label: 'GRAIL · 최상위·화제성', desc: '넘버링·한정 — 프레스티지·재방문', max: Infinity }
+      ];
+      function tierOf(price) { for (var i = 0; i < TIERS.length; i++) if (price < TIERS[i].max) return TIERS[i].key; return 'GRAIL'; }
+      var anyTier = sum.rows.length > 1;
+      if (anyTier) {
+        h += '<h3>가격 아키텍처 — 4단 구성</h3>'
+          + '<p style="font-size:12.5px;color:#57534C">접근성(누구나 사고싶은) × 소유욕(비싸도 갖고싶은) 두 축을 모두 채우도록 라인업을 가격대별로 배치합니다.</p>'
+          + '<table><thead><tr><th style="width:150px">티어</th><th>구성 품목</th><th class="num">가격대</th></tr></thead><tbody>';
+        TIERS.forEach(function (tr) {
+          var rows = sum.rows.filter(function (r) { return tierOf(r.price) === tr.key; });
+          if (!rows.length) return;
+          var lo = Math.min.apply(null, rows.map(function (r) { return r.price; }));
+          var hi = Math.max.apply(null, rows.map(function (r) { return r.price; }));
+          h += '<tr><td><b>' + tr.label + '</b><br><small style="color:#8A857C">' + tr.desc + '</small></td>'
+            + '<td>' + rows.map(function (r) { return esc(r.c.name); }).join(' · ') + '</td>'
+            + '<td class="num">' + (lo === hi ? GF_UI.won(lo) : GF_UI.wonRange([lo, hi])) + '</td></tr>';
+        });
+        h += '</tbody></table>';
+      }
+      var anyWhy = sum.rows.some(function (r) { return r.g.edge; });
+      h += '<h3>라인업 상세 · 수익</h3>'
+        + '<table><thead><tr><th>품목</th><th>' + (anyWhy ? 'WHY · 차별화' : '사양') + '</th><th class="num">수량</th><th class="num">판매가</th><th class="num">제작비</th><th class="num">완판 매출</th></tr></thead><tbody>';
       sum.rows.forEach(function (r) {
-        h += '<tr><td><b>' + esc(r.c.name) + '</b></td><td style="font-size:12px">' + esc(r.c.spec) + '</td>'
+        h += '<tr><td><b>' + esc(r.c.name) + '</b></td><td style="font-size:12px">' + esc(anyWhy ? (r.g.edge || '—') : r.c.spec) + '</td>'
           + '<td class="num">' + r.qty.toLocaleString() + '</td>'
           + '<td class="num">' + GF_UI.won(r.price) + '</td>'
           + '<td class="num">' + GF_UI.won(r.cost) + '</td>'

@@ -93,15 +93,14 @@ var GF_PROMPTS = {
   /* ---------- 4단계: 이미지 생성 (용도 선언 + 품목별 뷰/매력 + 가드) ----------
      ctx: goodsName, ipLine, material, mood, palette, styleLine, views, appeals, tone, guard, ar */
   imageStyles: [
-    { id:'detail', name:'상세페이지(품목별 구성)', desc:'품목에 맞는 뷰·사양·매력이 자동으로 들어간 상세페이지 통짜 컷',
+    { id:'detail', name:'상세페이지(통짜 1장)', desc:'상단 제품명·왼쪽 메인컷·오른쪽 특징3+사양표·하단 썸네일3 — 화이트 이커머스 상세페이지 한 장',
       build: function (ctx) {
-        return ctx.goodsName + ' 제품 상세페이지에 쓸 사진이야. ' + ctx.ipLine + '\n'
-          + (ctx.appeals ? '★ 이 제품의 매력 포인트: ' + ctx.appeals + '.\n' : '')
-          + '상단에 제품명과 짧은 서브컨셉, 큰 메인 컷, 사이즈 치수 라인을 넣고,\n'
-          + '이 품목에 맞는 상세 컷들을 함께 보여줘: ' + (ctx.views || '정면·측면·후면, 디테일, 패키지, 사용예시') + '.\n'
-          + '기본 사양 표(' + (ctx.material || '재질·사이즈·구성') + ')와 색상 옵션 배리에이션도 넣어줘.\n'
-          + (ctx.tone || '깔끔한 미니멀 그리드, 밝은 흰 배경') + '. '
-          + ctx.guard + '.'; } },
+        return ctx.goodsName + ' 제품 상세페이지 한 장이야(레이아웃·텍스트 포함). ' + ctx.ipLine + '\n'
+          + '깔끔한 화이트 이커머스 상세페이지 레이아웃으로 구성해줘: 상단 중앙에 제품명 타이틀, 왼쪽에 큰 메인 제품컷, '
+          + '오른쪽에 제품 특징 3가지' + (ctx.appeals ? '(' + ctx.appeals + ')' : '') + '와 심플한 사양표(' + (ctx.material || '소재·크기·구성') + '), '
+          + '하단에 정면·디테일·패키지 썸네일 3컷.\n'
+          + '미니멀 그리드, ' + (ctx.tone || '밝은 흰 배경, 파스텔 포인트') + ', 실사 제품 사진, 2K 고화질, photorealistic, e-commerce product detail page. '
+          + ctx.guard + '. --ar 16:9'; } },
     { id:'product', name:'단독 제품컷', desc:'메인 히어로용 리얼 제품 목업',
       build: function (ctx) {
         return ctx.goodsName + ' 단독 제품 사진이야. ' + ctx.ipLine + '\n'
