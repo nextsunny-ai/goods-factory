@@ -33,7 +33,7 @@ var GF_STEP1 = (function () {
       + '<div id="aiPlanBox" style="margin-top:14px"></div>'
       + '</div>'
 
-      + '<div class="card"><h3>IP(지식재산) 정보</h3>'
+      + '<div class="card" id="card-ipinfo"><h3>IP(지식재산) 정보</h3>'
       + '<div class="form-grid">'
       + '  <div class="field"><label>IP 이름 <small>작품·캐릭터·브랜드 이름</small></label>'
       + '    <input type="text" id="f-ipName" placeholder="예: 버블보블, 화산귀환, 우리 회사 마스코트" value="' + esc(p.ipName) + '"></div>'
@@ -68,7 +68,7 @@ var GF_STEP1 = (function () {
       + '  </div></div>'
       + '</div></div>'
 
-      + '<div class="card"><h3>이 단계의 AI 프롬프트</h3>'
+      + '<div class="card" id="card-prompts"><h3>이 단계의 AI 프롬프트</h3>'
       + '<p class="desc">복사해서 쓰시는 챗GPT·제미나이·클로드 채팅창에 붙여넣으면, 입력한 내용 기준으로 기획을 넓혀줍니다.</p>'
       + GF_AI.enhanceBtn('aiEnhStep1', 'AI로 기획 자동 완성', 'text', '입력한 IP만으로 매력·타깃·추천 굿즈·컨셉까지 기획을 자동으로 채워줍니다.')
       + '<div id="p1-prompts" style="margin-top:14px"></div>'
@@ -87,14 +87,16 @@ var GF_STEP1 = (function () {
     renderAiPlan();
     GF_AI.bindEnhance(root);
     var enh = GF_UI.$('#aiEnhStep1');
-    if (enh) enh.addEventListener('click', function () { GF_UI.toast('연결됨 — 자동 생성은 v1.3에서 제공됩니다. 지금은 아래 프롬프트를 쓰세요'); });
+    if (enh) enh.addEventListener('click', function () { GF_UI.toast('연결됨 — 자동 생성은 준비 중입니다. 지금은 아래 프롬프트를 복사해 쓰세요'); });
+
+    /* AI 모드면 중복되는 카드(수동 상세폼) 숨김 — AI 박스에 기본 입력이 있음 */
+    applyModeVisibility();
 
     GF_UI.$all('#f-planMode .chip').forEach(function (chip) {
       chip.addEventListener('click', function () {
         p.planMode = chip.getAttribute('data-v');
-        GF_UI.$all('#f-planMode .chip').forEach(function (c) { c.classList.toggle('on', c === chip); });
         GF_STORE.save();
-        renderAiPlan();
+        render(root);   /* 모드 바뀌면 화면 전체 다시 그림 (깔끔하게 show/hide) */
       });
     });
 
@@ -140,13 +142,41 @@ var GF_STEP1 = (function () {
     GF_UI.bindPromptCopy(box);
   }
 
+  /* AI 모드일 때 수동용 상세 카드 숨김 (AI 박스에 기본 입력이 있음) */
+  function applyModeVisibility() {
+    var ai = GF_STORE.state.project.plan.planMode === 'ai';
+    var ipCard = GF_UI.$('#card-ipinfo');
+    var pCard = GF_UI.$('#card-prompts');
+    if (ipCard) ipCard.classList.toggle('hidden', ai);
+    if (pCard) pCard.classList.toggle('hidden', ai);
+  }
+
   function renderAiPlan() {
     var box = GF_UI.$('#aiPlanBox');
     if (!box) return;
-    if (GF_STORE.state.project.plan.planMode !== 'ai') { box.innerHTML = ''; return; }
-    box.innerHTML = '<div class="note">아래 프롬프트 하나면 AI가 기획 전체(매력 포인트·타깃·추천 굿즈·컨셉·전략)를 짜줍니다. 결과를 보고 이 페이지 항목을 채우거나, 마음에 드는 부분만 옮기세요.</div>'
-      + GF_UI.promptListHtml(GF_PROMPTS.step1ai(promptCtx()), 's1ai-');
-    GF_UI.bindPromptCopy(box);
+    var p = GF_STORE.state.project.plan;
+    if (p.planMode !== 'ai') { box.innerHTML = ''; return; }
+    box.innerHTML = ''
+      + '<div class="note"><b>AI에게 맡겨도 "무엇을" 만들지는 알려줘야 합니다.</b> 아래 두 칸만 채우면, 그 내용으로 AI 기획 프롬프트가 완성됩니다.</div>'
+      + '<div class="field" style="margin-top:12px"><label>무슨 IP·브랜드로 만드나요? <small>필수</small></label>'
+      + '<input type="text" id="ai-ipName" placeholder="예: 버블보블 / 우리 회사 마스코트 / 조선요괴전" value="' + esc(p.ipName) + '"></div>'
+      + '<div class="field" style="margin-top:10px"><label>어떤 걸 만들고 싶은지 (한두 줄) <small>있으면 더 정확</small></label>'
+      + '<textarea id="ai-ipDesc" placeholder="예: 30~40대 레트로 게임 팬 대상 뮤지엄 기념 굿즈. 소장가치 있고 아기자기하게.">' + esc(p.ipDesc) + '</textarea></div>'
+      + '<div style="margin-top:12px">' + GF_AI.enhanceBtn('aiEnhAuto', 'AI로 기획 자동 완성', 'text', '적은 IP·아이디어만으로 매력·타깃·추천 굿즈·컨셉·전략까지 기획을 완성합니다.') + '</div>'
+      + '<div style="margin-top:14px"><div style="font-size:12.5px;font-weight:700;color:var(--ink-2);margin-bottom:6px">AI에 붙여넣을 프롬프트 (내용 쓰면 자동 완성)</div><div id="ai-promptbox"></div></div>';
+
+    function refresh() {
+      var pb = GF_UI.$('#ai-promptbox');
+      if (pb) { pb.innerHTML = GF_UI.promptListHtml(GF_PROMPTS.step1ai(promptCtx()), 's1ai-'); GF_UI.bindPromptCopy(pb); }
+    }
+    var nameInp = GF_UI.$('#ai-ipName'), descInp = GF_UI.$('#ai-ipDesc');
+    nameInp.addEventListener('input', function () { p.ipName = this.value; GF_STORE.save(); refresh(); });
+    descInp.addEventListener('input', function () { p.ipDesc = this.value; GF_STORE.save(); refresh(); });
+    GF_AI.bindEnhance(box);
+    var enh = GF_UI.$('#aiEnhAuto');
+    if (enh) enh.addEventListener('click', function () { GF_UI.toast('연결됨 — 자동 생성은 준비 중입니다. 지금은 프롬프트를 복사해 쓰세요'); });
+    refresh();
+    nameInp.focus();
   }
 
   return { render: render, promptCtx: promptCtx };
