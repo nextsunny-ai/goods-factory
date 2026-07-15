@@ -23,6 +23,7 @@ var GF_STORE = (function () {
         region: 'domestic', planMode: 'manual', targetLine: ''
       },
       refs: [],
+      genImages: [],            /* AI(제미나이)로 생성한 이미지 {img, title} */
       mockups: {},
       schedule: { startDate: '', designDays: 10 },
       market: { checked: [], memo: '', priceLow: 0, priceHigh: 0, trends: [], existingMemo: '', edge: '' },

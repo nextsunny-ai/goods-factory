@@ -54,6 +54,8 @@ var GF_STEP4 = (function () {
       + '<div class="card"><h3>생성된 이미지 프롬프트</h3>'
       + '<p class="desc">아래 프롬프트는 "용도 선언" 문법으로 작성됩니다 — 어디에 쓸 이미지인지 먼저 선언하면 AI가 결과물의 완성도를 스스로 상업용 수준으로 맞춥니다.</p>'
       + GF_AI.enhanceBtn('aiEnhStep4', '프롬프트로 이미지 일괄 생성', 'image', '이 프롬프트들로 굿즈 시안 이미지를 앱에서 바로, 여러 장 자동 생성해 상세페이지에 넣어줍니다.')
+      + '<div id="genProgress" style="margin-top:10px"></div>'
+      + '<div id="genGallery" style="margin-top:12px"></div>'
       + '<div id="imgPrompts" style="margin-top:14px"></div></div>'
 
       + '<div class="card"><h3>디자인 컨셉 잡기 프롬프트 (텍스트)</h3><div id="p4-prompts"></div></div>'
@@ -94,8 +96,12 @@ var GF_STEP4 = (function () {
     renderImgPrompts();
     renderRefs();
     GF_AI.bindEnhance(root);
+    renderGallery();
     var enh4 = $('#aiEnhStep4');
-    if (enh4) enh4.addEventListener('click', function () { GF_UI.toast('연결됨 — 이미지 자동 생성은 v1.3에서 제공됩니다. 지금은 프롬프트를 복사해 쓰세요'); });
+    if (enh4) enh4.addEventListener('click', function () {
+      if (!GF_AI.geminiOn()) { GF_AI.openPanel(); return; }
+      confirmGenerate();
+    });
 
     /* 레퍼런스 이미지 업로드 */
     var pendingKind = 'product';
@@ -291,6 +297,69 @@ var GF_STEP4 = (function () {
     var name = (proj.plan.ipName || proj.name || '굿즈').replace(/[\\/:*?"<>|]/g, '_');
     GF_UI.download('프롬프트모음_' + name + '_' + GF_UI.today() + '.txt', out, 'text/plain;charset=utf-8');
     GF_UI.toast('프롬프트 전체를 .txt 파일로 저장했습니다');
+  }
+
+  /* ---- 제미나이 이미지 생성 실행 ---- */
+  function confirmGenerate() {
+    var prompts = buildImagePrompts();
+    if (!prompts.length) { GF_UI.toast('3단계에서 굿즈를 먼저 선택하세요'); return; }
+    GF_UI.openModal('AI 이미지 생성',
+      '<p style="font-size:14px">이 프롬프트 <b>' + prompts.length + '장</b>을 제미나이로 생성합니다.</p>'
+      + '<p style="font-size:12.5px;color:var(--ink-3);margin-top:6px">대표님 제미나이 키로 호출되며 <b>이미지 생성은 구글 결제(비용)</b>가 발생할 수 있습니다. 순서대로 생성되고 결과는 아래 갤러리에 쌓입니다. 컷 종류를 줄이면 장수가 줄어듭니다.</p>'
+      + '<div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end"><button class="btn btn-ghost btn-sm" id="gCancel">취소</button><button class="btn btn-primary btn-sm" id="gGo">' + prompts.length + '장 생성</button></div>');
+    $('#gCancel').addEventListener('click', GF_UI.closeModal);
+    $('#gGo').addEventListener('click', function () { GF_UI.closeModal(); runGeneration(prompts); });
+  }
+
+  function runGeneration(prompts) {
+    var proj = GF_STORE.state.project;
+    var prog = $('#genProgress');
+    var i = 0, okc = 0;
+    function next() {
+      if (i >= prompts.length) {
+        prog.innerHTML = '<div class="note good">완료 — ' + okc + '/' + prompts.length + '장 생성. 아래 갤러리에서 "히어로/컷 추가"로 상세페이지에 넣으세요.</div>';
+        GF_STORE.save(); renderGallery(); return;
+      }
+      var p = prompts[i];
+      if (prog) prog.innerHTML = '<div class="note">생성 중… (' + (i + 1) + '/' + prompts.length + ') ' + esc(p.title) + '</div>';
+      GF_AI.generateImage(p.text).then(function (dataUrl) {
+        var im = new Image();
+        im.onload = function () {
+          var scale = Math.min(1, 900 / im.width);
+          var cv = document.createElement('canvas'); cv.width = Math.round(im.width * scale); cv.height = Math.round(im.height * scale);
+          cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+          proj.genImages.push({ img: cv.toDataURL('image/jpeg', 0.85), title: p.title });
+          okc++; i++; GF_STORE.save(); renderGallery(); next();
+        };
+        im.onerror = function () { proj.genImages.push({ img: dataUrl, title: p.title }); okc++; i++; GF_STORE.save(); renderGallery(); next(); };
+        im.src = dataUrl;
+      }).catch(function (err) {
+        if (prog) prog.innerHTML = '<div class="note warn"><b>생성 중단 — ' + esc(String((err && err.message) || err)) + '</b><br>제미나이 키·이미지 권한·결제 등록을 확인하세요. (여기까지 ' + okc + '장 성공, 갤러리에 저장됨)</div>';
+        GF_STORE.save(); renderGallery();
+      });
+    }
+    next();
+  }
+
+  function renderGallery() {
+    var box = $('#genGallery'); if (!box) return;
+    var proj = GF_STORE.state.project; var imgs = proj.genImages || [];
+    if (!imgs.length) { box.innerHTML = ''; return; }
+    box.innerHTML = '<div style="font-size:12.5px;font-weight:700;margin-bottom:8px">생성된 이미지 (' + imgs.length + ') — 상세페이지에 바로 넣기</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">'
+      + imgs.map(function (g, idx) {
+          return '<div style="border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;background:#fff">'
+            + '<img src="' + g.img + '" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block">'
+            + '<div style="padding:6px 8px"><div style="font-size:10.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(g.title) + '</div>'
+            + '<div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap">'
+            + '<button class="btn btn-xs btn-soft" data-genhero="' + idx + '">히어로</button>'
+            + '<button class="btn btn-xs btn-ghost" data-gencut="' + idx + '">컷 추가</button>'
+            + '<button class="btn btn-xs btn-ghost" data-gendel="' + idx + '">삭제</button></div></div></div>';
+        }).join('')
+      + '</div>';
+    GF_UI.$all('[data-genhero]', box).forEach(function (b) { b.addEventListener('click', function () { proj.detail.heroImg = imgs[Number(b.getAttribute('data-genhero'))].img; GF_STORE.save(); GF_UI.toast('상세페이지 히어로로 넣었습니다'); }); });
+    GF_UI.$all('[data-gencut]', box).forEach(function (b) { b.addEventListener('click', function () { var g = imgs[Number(b.getAttribute('data-gencut'))]; proj.detail.cuts.push({ img: g.img, label: g.title, caption: '' }); GF_STORE.save(); GF_UI.toast('상세페이지 컷으로 추가했습니다'); }); });
+    GF_UI.$all('[data-gendel]', box).forEach(function (b) { b.addEventListener('click', function () { imgs.splice(Number(b.getAttribute('data-gendel')), 1); GF_STORE.save(); renderGallery(); }); });
   }
 
   return { render: render, buildImagePrompts: buildImagePrompts };

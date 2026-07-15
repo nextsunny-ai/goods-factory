@@ -83,6 +83,41 @@ var GF_AI = (function () {
     });
   }
 
+  /* ---- 제미나이 이미지 생성 (BYOK, 브라우저에서 직접 호출) ----
+     대표님 키는 앱 AI 패널에 저장(브라우저 로컬). 텍스트 프롬프트 → 이미지 dataURL.
+     모델명은 바뀔 수 있어 config로 뺌. CORS/키/모델 오류는 그대로 메시지로 전달. */
+  var IMG_MODELS = ['gemini-2.5-flash-image', 'gemini-2.5-flash-image-preview', 'gemini-2.0-flash-preview-image-generation'];
+
+  function generateImage(prompt, modelIdx) {
+    var key = state().geminiKey;
+    if (!key) return Promise.reject(new Error('제미나이 키가 없습니다 (앱 AI 연결 패널에 입력)'));
+    modelIdx = modelIdx || 0;
+    var model = IMG_MODELS[modelIdx];
+    if (!model) return Promise.reject(new Error('사용 가능한 이미지 모델을 찾지 못했습니다 (키·권한 확인)'));
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key);
+    return fetch(url, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseModalities: ['IMAGE'] } })
+    }).then(function (res) {
+      return res.json().then(function (j) { return { ok: res.ok, status: res.status, j: j }; });
+    }).then(function (r) {
+      if (!r.ok) {
+        var msg = (r.j && r.j.error && r.j.error.message) || ('HTTP ' + r.status);
+        /* 모델명이 안 맞으면 다음 후보로 재시도 */
+        if ((r.status === 404 || /not found|not supported|responseModalities/i.test(msg)) && IMG_MODELS[modelIdx + 1]) {
+          return generateImage(prompt, modelIdx + 1);
+        }
+        throw new Error(msg);
+      }
+      var cand = r.j.candidates && r.j.candidates[0];
+      var parts = (cand && cand.content && cand.content.parts) || [];
+      var imgPart = parts.filter(function (p) { return p.inlineData || p.inline_data; })[0];
+      var inl = imgPart && (imgPart.inlineData || imgPart.inline_data);
+      if (!inl) throw new Error('이미지가 반환되지 않았습니다 (프롬프트를 바꾸거나 이미지 지원 모델 키인지 확인)');
+      return 'data:' + (inl.mimeType || inl.mime_type || 'image/png') + ';base64,' + inl.data;
+    });
+  }
+
   return { refreshPill: refreshPill, openPanel: openPanel, enhanceBtn: enhanceBtn, bindEnhance: bindEnhance,
-    claudeOn: claudeOn, geminiOn: geminiOn, anyOn: anyOn };
+    claudeOn: claudeOn, geminiOn: geminiOn, anyOn: anyOn, generateImage: generateImage };
 })();
