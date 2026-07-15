@@ -28,7 +28,7 @@ var GF_STORE = (function () {
       schedule: { startDate: '', designDays: 10 },
       market: { checked: [], memo: '', priceLow: 0, priceHigh: 0, trends: [], existingMemo: '', edge: '' },
       goods: [],            /* {catalogId, qty, unitCost, price, edge} */
-      design: { concept: '', palette: '', keywords: '', styleId: 'detail', mood: '', keepColors: true },
+      design: { concept: '', palette: '', keywords: '', styleId: 'detail', mood: '', keepColors: true, finish: '' },
       proposalStyle: 'basic',   /* 제안서 디자인 양식 */
       docEdits: {},
       progress: { sent: false, confirmed: false, ordered: false },

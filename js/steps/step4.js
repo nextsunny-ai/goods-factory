@@ -33,7 +33,16 @@ var GF_STEP4 = (function () {
       + '  <div class="field"><label>스타일 키워드 <small>일러스트 시안용</small></label>'
       + '    <input type="text" id="d-keywords" placeholder="예: 픽셀아트, 벡터 일러스트, 수채화" value="' + esc(d.keywords) + '"></div>'
       + '</div>'
-      + '<div class="note"><b>팁:</b> 실제 IP 이미지(원작 스프라이트·공식 일러스트)가 있다면 프롬프트와 함께 <b>레퍼런스 이미지로 첨부</b>하세요(아래 "레퍼런스 이미지"). 원작 색·형태가 훨씬 정확해집니다.</div>'
+      + '<hr class="divider">'
+      + '<h3 style="font-size:14px">특수 후가공 · 재질 <small style="font-weight:400;color:var(--ink-3)">— 금·은·홀로그램 같은 굿즈 마감 (선택)</small></h3>'
+      + '<p class="desc" style="margin:4px 0 8px">굿즈는 색만이 아니라 <b>재질·후가공</b>이 중요합니다. 원하는 마감을 누르거나 직접 쓰면 이미지 프롬프트에 반영됩니다. (원작 색 유지와 별개)</p>'
+      + '<div class="chip-group" id="finishChips" style="margin-bottom:8px">'
+      + ['골드(금박·도금)', '실버(은박)', '홀로그램', '글리터', '야광', '투명(클리어)', '무광', '유광 에폭시'].map(function (f) {
+          return '<button class="chip" data-finish="' + esc(f) + '">' + esc(f) + '</button>';
+        }).join('')
+      + '</div>'
+      + '<div class="field"><input type="text" id="d-finish" placeholder="예: 골드 도금 테두리 + 홀로그램 인쇄" value="' + esc(d.finish || '') + '"></div>'
+      + '<div class="note" style="margin-top:12px"><b>팁:</b> 실제 IP 이미지(원작 스프라이트·공식 일러스트)가 있다면 프롬프트와 함께 <b>레퍼런스 이미지로 첨부</b>하세요(아래 "레퍼런스 이미지"). 원작 색·형태가 훨씬 정확해집니다.</div>'
       + '</div>'
 
       + '<div class="card"><h3>레퍼런스 이미지 <small style="font-weight:400;color:var(--ink-3)">— 선택</small></h3>'
@@ -85,6 +94,21 @@ var GF_STEP4 = (function () {
       d.keepColors = this.checked; GF_STORE.save(); renderImgPrompts();
       var note = this.closest('.note'); if (note) note.classList.toggle('good', this.checked);
       GF_UI.toast(this.checked ? '원작 캐릭터·브랜드 색을 유지합니다' : '아래 "메인 컬러"로 바꿔 생성합니다');
+    });
+    var finInp = $('#d-finish');
+    if (finInp) finInp.addEventListener('input', function () { d.finish = this.value; GF_STORE.save(); renderImgPrompts(); });
+    GF_UI.$all('#finishChips .chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var f = chip.getAttribute('data-finish');
+        var cur = (d.finish || '').trim();
+        var on = cur.indexOf(f) >= 0;
+        if (on) { cur = cur.split(/\s*[,+]\s*/).filter(function (x) { return x && x !== f; }).join(' + '); }
+        else { cur = cur ? cur + ' + ' + f : f; }
+        d.finish = cur; GF_STORE.save();
+        if (finInp) finInp.value = cur;
+        chip.classList.toggle('on', !on);
+        renderImgPrompts();
+      });
     });
 
     GF_UI.$all('[data-style]').forEach(function (chip) {
@@ -228,6 +252,7 @@ var GF_STEP4 = (function () {
     /* 원작 색 유지 여부 — 기존 IP는 캐릭터/브랜드 고유 색을 지키는 게 기본 */
     var keep = d.keepColors !== false;
     ipLine += keep ? ' 원작 캐릭터·브랜드 고유 색은 그대로 지켜줘.' : (d.palette ? ' 전체 색감은 ' + d.palette + ' 계열로.' : '');
+    if (d.finish && d.finish.trim()) ipLine += ' 특수 후가공·재질은 ' + d.finish.trim() + '로 표현해줘(실제 그 재질 질감이 살게).';
     ipLine += refHint;
 
     var tone = GF_TARGET_TONE[plan.target] || GF_TARGET_TONE.general;
