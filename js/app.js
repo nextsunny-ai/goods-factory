@@ -3,6 +3,7 @@ var GF_APP = (function () {
   var $ = GF_UI.$;
   var current = 1;
   var STEPS = {
+    home: GF_HOME,
     1: GF_STEP1, 2: GF_STEP2, 3: GF_STEP3, 4: GF_STEP4,
     5: GF_MOCKUP, 6: GF_SCHEDULE, 7: GF_STEP5, settings: GF_SETTINGS
   };
@@ -42,7 +43,7 @@ var GF_APP = (function () {
     nameInput.value = GF_STORE.state.project.name;
     nameInput.addEventListener('input', function () { GF_STORE.state.project.name = this.value; GF_STORE.save(); });
 
-    $('#brandHome').addEventListener('click', function () { go(GF_STORE.state.project.updatedStep || 1); });
+    $('#brandHome').addEventListener('click', function () { go('home'); });
     $('#btnAiPanel').addEventListener('click', GF_AI.openPanel);
     $('#btnSettings').addEventListener('click', function () { go('settings'); });
 
@@ -178,10 +179,9 @@ var GF_APP = (function () {
     bindAppbar();
     $('#projectName').value = GF_STORE.state.project.name;
     GF_AI.refreshPill();
-    var p = GF_STORE.state.project;
-    go(p.updatedStep && (p.plan.ipName || p.goods.length) ? p.updatedStep : 1);
+    go('home');
   }
 
   document.addEventListener('DOMContentLoaded', init);
-  return { go: go };
+  return { go: go, openProjectManager: openProjectManager };
 })();

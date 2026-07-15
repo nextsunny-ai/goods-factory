@@ -38,9 +38,9 @@ var GF_STEP5 = (function () {
       + '  <p>보통 실무에서 나가는 문서들을 <b>따로따로</b> 뽑을 수 있습니다. "열기"로 앱 안에서 보면서 직접 고치고, HTML로 저장해 인쇄(PDF)하세요.</p>'
       + '</div>';
 
-    /* 제안서·기획안·디자인제안 디자인 양식 선택 */
-    html += '<div class="card"><h3>제출 문서 디자인 양식</h3>'
-      + '<p class="desc">기획안·디자인 제안·사업 제안서에 적용됩니다. 같은 내용, 비주얼만 달라집니다. (타깃에 맞춰 고르세요)</p>'
+    /* 제안서·기획안·디자인제안 디자인 양식 선택 + 미리보기 */
+    html += '<div class="card"><h2>제안서 · 문서 디자인 양식</h2>'
+      + '<p class="desc">기획안·디자인 제안·사업 제안서에 적용됩니다. 같은 내용, 비주얼만 달라집니다. 골라서 바로 미리보세요.</p>'
       + '<div class="chip-group" id="proposalStyle">'
       + Object.keys(GF_DOC_THEMES).map(function (id) {
           var t = GF_DOC_THEMES[id];
@@ -48,7 +48,17 @@ var GF_STEP5 = (function () {
           return '<button class="chip' + (on ? ' on' : '') + '" data-pstyle="' + id + '" title="' + esc(t.desc) + '">' + esc(t.name) + '</button>';
         }).join('')
       + '</div>'
-      + '<p class="desc" id="pstyleDesc" style="margin:10px 0 0"></p>'
+      + '<p class="desc" id="pstyleDesc" style="margin:10px 0 4px"></p>'
+      + '<hr class="divider">'
+      + '<div class="card-head" style="margin-bottom:8px"><h3 style="margin:0">사업 제안서 미리보기</h3>'
+      + '<button class="btn btn-xs btn-ghost" id="ppOpen">새 창으로 크게</button></div>'
+      + '<p class="desc" style="margin:0 0 8px">제안서 항목(아래)과 고른 양식으로 실제 모습을 미리 봅니다.</p>'
+      + '<div class="prop-sections">'
+      + ['표지 (회사명)', '1. 사업 개요', '2. 시장 분석 · 차별화', '3. 상품 구성 · 수익 구조', '4. 디자인 방향', '5. 추진 일정', '6. 제안사 정보']
+          .map(function (s) { return '<span>' + esc(s) + '</span>'; }).join('')
+      + '</div>'
+      + '<div class="note">이미지 자리 — 제안서 본문은 <b>표·글 중심</b>입니다. 굿즈 <b>시안·목업 이미지</b>는 "디자인 제안 + 견적" 문서에 들어갑니다(아래 "고객 제출용"에서 열기).</div>'
+      + '<div class="prop-preview"><iframe id="ppFrame" title="제안서 미리보기"></iframe></div>'
       + '</div>';
 
     var o = outputs();
@@ -160,18 +170,20 @@ var GF_STEP5 = (function () {
   function bindProposalStyle() {
     var proj = GF_STORE.state.project;
     function upd() { var t = GF_DOC_THEMES[proj.proposalStyle || 'basic']; var d = $('#pstyleDesc'); if (d) d.textContent = t ? t.desc : ''; }
-    upd();
+    function preview() { var f = $('#ppFrame'); if (f) f.srcdoc = GF_EXPORT_PROPOSAL.build(); }
+    upd(); preview();
     GF_UI.$all('[data-pstyle]').forEach(function (chip) {
       chip.addEventListener('click', function () {
         proj.proposalStyle = chip.getAttribute('data-pstyle');
-        /* 스타일 바꾸면 해당 문서들의 수정본은 원본 재생성 기준으로 (스타일 반영 위해) */
         ['plan', 'designquote', 'proposal'].forEach(function (k) { if (proj.docEdits[k]) { proj.docEdits[k + '_이전수정본'] = proj.docEdits[k]; delete proj.docEdits[k]; } });
         GF_STORE.save();
         GF_UI.$all('[data-pstyle]').forEach(function (c) { c.classList.toggle('on', c === chip); });
-        upd();
-        GF_UI.toast('"' + GF_DOC_THEMES[proj.proposalStyle].name + '" 양식을 적용했습니다');
+        upd(); preview();
+        GF_UI.toast('"' + GF_DOC_THEMES[proj.proposalStyle].name + '" 양식 적용 — 미리보기 갱신됨');
       });
     });
+    var open = $('#ppOpen');
+    if (open) open.addEventListener('click', function () { GF_VIEWER.open({ docKey: 'proposal', title: '사업 제안서', buildFn: GF_EXPORT_PROPOSAL.build, fileName: GF_EXPORT_PROPOSAL.fileName() }); });
   }
 
   function bindProgress() {
