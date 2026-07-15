@@ -1,0 +1,12 @@
+{
+  "name": "GOODS FACTORY — 굿즈 기획·제작 원스톱",
+  "short_name": "GOODS FACTORY",
+  "description": "굿즈 기획부터 시장분석·굿즈선정·디자인·목업·스케줄·발주까지 원스톱",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FAFAF8",
+  "theme_color": "#F0663A",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

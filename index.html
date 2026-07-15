@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOODS FACTORY — 굿즈 기획·제작 원스톱</title>
+<link rel="icon" type="image/svg+xml" href="assets/icon.svg?v=131">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#F0663A">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="css/main.css?v=131">
+</head>
+<body>
+
+<!-- 복구 배너 -->
+<div id="recoveryBanner" class="banner hidden">
+  <span id="recoveryText">이전 작업을 발견했습니다.</span>
+  <div class="banner-actions">
+    <button class="btn btn-sm btn-light" id="btnRecover">이어서 작업</button>
+    <button class="btn btn-sm btn-ghost-d" id="btnDiscard">새로 시작</button>
+  </div>
+</div>
+
+<!-- ===== 상단 앱바 ===== -->
+<header class="appbar">
+  <div class="appbar-in">
+    <div class="brand" id="brandHome" title="처음으로">
+      <span class="brand-icon">
+        <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="hbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB877"/><stop offset=".55" stop-color="#FF8A3D"/><stop offset="1" stop-color="#F0663A"/></linearGradient>
+            <linearGradient id="hlid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#FFF3E6"/></linearGradient>
+          </defs>
+          <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#hbg)"/>
+          <ellipse cx="196" cy="150" rx="180" ry="90" fill="#fff" opacity=".14"/>
+          <g fill="#FFD24D"><path d="M214 150 C186 96,150 92,150 132 C150 164,196 168,232 170 Z"/><path d="M298 150 C326 96,362 92,362 132 C362 164,316 168,280 170 Z"/></g>
+          <circle cx="256" cy="162" r="26" fill="#FFC233"/>
+          <rect x="150" y="196" width="212" height="196" rx="40" fill="url(#hlid)"/>
+          <rect x="134" y="176" width="244" height="70" rx="30" fill="#fff"/>
+          <rect x="238" y="176" width="36" height="216" rx="14" fill="#FFE1C2"/>
+          <g fill="#3A2A1A"><circle cx="212" cy="300" r="15"/><circle cx="300" cy="300" r="15"/><path d="M226 332 Q256 360 286 332" stroke="#3A2A1A" stroke-width="14" fill="none" stroke-linecap="round"/></g>
+          <circle cx="188" cy="326" r="14" fill="#FF9E7A" opacity=".7"/><circle cx="324" cy="326" r="14" fill="#FF9E7A" opacity=".7"/>
+          <path d="M398 214 l10 26 l26 10 l-26 10 l-10 26 l-10 -26 l-26 -10 l26 -10 Z" fill="#fff" opacity=".95"/>
+        </svg>
+      </span>
+      <span class="brand-word">
+        <strong>GOODS FACTORY</strong>
+        <em>굿즈 기획 · 제작 원스톱</em>
+      </span>
+    </div>
+
+    <div class="appbar-right">
+      <div class="proj-name">
+        <input type="text" id="projectName" placeholder="프로젝트 이름" maxlength="40">
+        <span class="save-status" id="saveStatus">자동저장</span>
+      </div>
+      <button class="ai-pill" id="btnAiPanel" title="AI 연결">
+        <span class="ai-dot" id="aiDot"></span><span id="aiPillText">AI 연결</span>
+      </button>
+      <button class="icon-btn" id="btnSettings" title="설정">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <div class="menu-wrap">
+        <button class="icon-btn" id="btnProjMenu" title="프로젝트">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+        </button>
+        <div class="menu-drop hidden" id="projMenu">
+          <button data-menu="projects">📂 내 프로젝트 목록</button>
+          <button data-menu="new">＋ 새 프로젝트</button>
+          <hr>
+          <button data-menu="export">이 프로젝트 파일로 저장 (.json)</button>
+          <button data-menu="import">파일에서 불러오기</button>
+        </div>
+      </div>
+      <input type="file" id="importJsonFile" accept=".json" class="hidden">
+    </div>
+  </div>
+
+  <!-- 스텝 네비 -->
+  <nav class="topnav" id="stepsNav">
+    <button class="nav-tab" data-step="1"><b>1</b> 기획</button>
+    <button class="nav-tab" data-step="2"><b>2</b> 시장</button>
+    <button class="nav-tab" data-step="3"><b>3</b> 굿즈</button>
+    <button class="nav-tab" data-step="4"><b>4</b> 디자인</button>
+    <button class="nav-tab" data-step="5"><b>5</b> 목업</button>
+    <button class="nav-tab" data-step="6"><b>6</b> 스케줄</button>
+    <button class="nav-tab" data-step="7"><b>7</b> 산출물</button>
+  </nav>
+</header>
+
+<main class="main">
+  <div class="content" id="content"></div>
+</main>
+
+<!-- 토스트 -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- 모달 -->
+<div id="modalOverlay" class="modal-overlay hidden">
+  <div class="modal" id="modalBox">
+    <div class="modal-head">
+      <h3 id="modalTitle"></h3>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="js/data/catalog.js?v=131"></script>
+<script src="js/data/market.js?v=131"></script>
+<script src="js/data/prompts.js?v=131"></script>
+<script src="js/data/concepts.js?v=131"></script>
+<script src="js/data/itemdetail.js?v=131"></script>
+<script src="js/data/production.js?v=131"></script>
+<script src="js/data/mockups.js?v=131"></script>
+<script src="js/data/doc-themes.js?v=131"></script>
+<script src="js/data/trends.js?v=131"></script>
+<script src="js/core/ui.js?v=131"></script>
+<script src="js/core/store.js?v=131"></script>
+<script src="js/core/ai.js?v=131"></script>
+<script src="js/core/viewer.js?v=131"></script>
+<script src="js/exports/stepdocs.js?v=131"></script>
+<script src="js/exports/detailpage.js?v=131"></script>
+<script src="js/exports/proposal.js?v=131"></script>
+<script src="js/exports/order.js?v=131"></script>
+<script src="js/exports/quote.js?v=131"></script>
+<script src="js/exports/schedule-doc.js?v=131"></script>
+<script src="js/exports/plandoc.js?v=131"></script>
+<script src="js/exports/designquote.js?v=131"></script>
+<script src="js/exports/masterdoc.js?v=131"></script>
+<script src="js/steps/step1.js?v=131"></script>
+<script src="js/steps/step2.js?v=131"></script>
+<script src="js/steps/step3.js?v=131"></script>
+<script src="js/steps/step4.js?v=131"></script>
+<script src="js/steps/mockup.js?v=131"></script>
+<script src="js/steps/schedule.js?v=131"></script>
+<script src="js/steps/step5.js?v=131"></script>
+<script src="js/steps/settings.js?v=131"></script>
+<script src="js/app.js?v=131"></script>
+</body>
+</html>

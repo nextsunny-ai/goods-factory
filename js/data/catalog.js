@@ -1,0 +1,173 @@
+/* ============================================================
+   굿즈 카탈로그 데이터 (2026 기준 참고치)
+   - cost: 일반적인 MOQ 기준 개당 제작단가 범위 [최저, 최고] (원)
+   - price: 국내 팬덤/캐릭터 굿즈 시장 소비자가 범위 [최저, 최고] (원)
+   - moq: 통상 최소 발주 수량 / lead: 통상 제작 기간(일, 국내 기준)
+   - fit: 타깃 적합도 0~5 (팬덤 / 일반 / 아동)
+   - vendorType: 제작처 유형 (설정의 제작처 리스트와 매칭용)
+   ※ 모든 수치는 시장 평균 참고치. 실제 견적으로 확정할 것.
+   ============================================================ */
+var GF_CATALOG = [
+  /* ---------- 아크릴 ---------- */
+  { id:'ac-keyring',  cat:'아크릴', name:'아크릴 키링', moq:100, cost:[900,2200], price:[6000,15000], lead:7,
+    fit:{fandom:5, general:3, kids:3}, vendorType:'아크릴 인쇄',
+    spec:'투명 아크릴 3T, 양면 인쇄, O링+체인', desc:'팬덤 굿즈의 기본. 소량 제작 쉽고 마진 좋음. 홀로그램·글리터 옵션으로 단가 업' },
+  { id:'ac-stand',    cat:'아크릴', name:'아크릴 스탠드', moq:100, cost:[1800,4500], price:[12000,25000], lead:10,
+    fit:{fandom:5, general:2, kids:3}, vendorType:'아크릴 인쇄',
+    spec:'본체 3T + 바닥판 5T, 양면 인쇄', desc:'캐릭터 IP 대표 굿즈. 등신대형·SD형 구성. 바닥판 디자인까지 세트로' },
+  { id:'ac-block',    cat:'아크릴', name:'아크릴 블럭(두꺼운 디스플레이)', moq:100, cost:[3500,7000], price:[18000,35000], lead:12,
+    fit:{fandom:4, general:2, kids:1}, vendorType:'아크릴 인쇄',
+    spec:'15~20T 투명 블럭, UV 인쇄', desc:'소장용 프리미엄. 아트웍 퀄리티가 판매를 좌우' },
+  { id:'ac-magnet',   cat:'아크릴', name:'아크릴 자석(냉장고 마그넷)', moq:100, cost:[800,1800], price:[5000,9000], lead:7,
+    fit:{fandom:3, general:4, kids:4}, vendorType:'아크릴 인쇄',
+    spec:'3T 아크릴 + 고무자석', desc:'관광지·팝업 스토어 가벼운 구매용으로 강함' },
+  { id:'ac-diorama',  cat:'아크릴', name:'아크릴 디오라마(레이어 스탠드)', moq:100, cost:[4500,9000], price:[25000,45000], lead:14,
+    fit:{fandom:5, general:1, kids:1}, vendorType:'아크릴 인쇄',
+    spec:'3~4겹 레이어 + 전용 바닥판', desc:'장면 연출형 프리미엄 굿즈. 한정판 전략과 궁합' },
+
+  /* ---------- 지류·문구 ---------- */
+  { id:'pp-photocard', cat:'지류·문구', name:'포토카드 세트(8매)', moq:200, cost:[700,1800], price:[5000,15000], lead:5,
+    fit:{fandom:5, general:1, kids:2}, vendorType:'지류 인쇄',
+    spec:'아트지 300g 코팅, 55×85mm, OPP 포장', desc:'팬덤 회전율 1위. 랜덤 포장 시 구매 수량 증가. 시즌별 재발매 쉬움' },
+  { id:'pp-postcard',  cat:'지류·문구', name:'엽서 세트(6매)', moq:200, cost:[900,2000], price:[6000,12000], lead:5,
+    fit:{fandom:4, general:3, kids:2}, vendorType:'지류 인쇄',
+    spec:'스노우지 250g, 100×148mm, 띠지 포장', desc:'일러스트 IP와 궁합. 전시·팝업 병행 판매용' },
+  { id:'pp-poster',    cat:'지류·문구', name:'포스터(A3/B2)', moq:100, cost:[800,2500], price:[8000,18000], lead:5,
+    fit:{fandom:4, general:2, kids:2}, vendorType:'지류 인쇄',
+    spec:'아트지 200g / 지관 포장 별도', desc:'지관 포장 여부가 배송 파손 리뷰를 좌우. 한정 넘버링으로 소장가치 업' },
+  { id:'pp-sticker',   cat:'지류·문구', name:'씰 스티커(칼선)', moq:200, cost:[500,1500], price:[3000,7000], lead:5,
+    fit:{fandom:4, general:4, kids:5}, vendorType:'지류 인쇄',
+    spec:'유포지/리무버블, 칼선 재단', desc:'낮은 단가로 객단가 채우기용 필수템. 다꾸 수요 지속' },
+  { id:'pp-memo',      cat:'지류·문구', name:'떡메모지', moq:200, cost:[900,1800], price:[4000,8000], lead:7,
+    fit:{fandom:3, general:4, kids:3}, vendorType:'지류 인쇄',
+    spec:'모조지 100g, 100매, 80×80mm', desc:'문구 팬시 스테디셀러. 세트 구성에 넣기 좋음' },
+  { id:'pp-note',      cat:'지류·문구', name:'노트(양장/스프링)', moq:300, cost:[1800,4000], price:[8000,16000], lead:12,
+    fit:{fandom:3, general:4, kids:3}, vendorType:'지류 인쇄',
+    spec:'A5, 내지 128p, 표지 후가공', desc:'표지 박·형압 후가공으로 급이 달라짐' },
+  { id:'pp-calendar',  cat:'지류·문구', name:'탁상 달력(시즌)', moq:300, cost:[2500,5000], price:[12000,22000], lead:15,
+    fit:{fandom:5, general:3, kids:2}, vendorType:'지류 인쇄',
+    spec:'스프링 제본, 받침대 포함, 13매', desc:'연말 시즌 한정 매출 크게 나옴. 9~10월 발주 필수' },
+  { id:'pp-maskingtape', cat:'지류·문구', name:'마스킹테이프', moq:300, cost:[1200,2500], price:[5000,9000], lead:20,
+    fit:{fandom:4, general:4, kids:3}, vendorType:'지류 인쇄',
+    spec:'15mm×10m, 일본지', desc:'다꾸·문구 수요 탄탄. 패턴 디자인 역량 필요' },
+  { id:'pp-slogan',    cat:'지류·문구', name:'종이 슬로건', moq:200, cost:[800,1800], price:[5000,10000], lead:5,
+    fit:{fandom:5, general:0, kids:1}, vendorType:'지류 인쇄',
+    spec:'아트지 250g, 210×70mm', desc:'공연·행사 연계 굿즈. 이벤트 특전으로도 활용' },
+
+  /* ---------- 패브릭 ---------- */
+  { id:'fb-doll20',   cat:'패브릭', name:'봉제인형 20cm', moq:300, cost:[6500,13000], price:[28000,45000], lead:45,
+    fit:{fandom:5, general:3, kids:5}, vendorType:'봉제 공장',
+    spec:'폴리에스터, KC 인증 필요', desc:'IP 굿즈의 왕. 샘플 2~3회 수정 필수, 제작기간 길어 일정 여유 필요. KC 인증 비용 별도' },
+  { id:'fb-dollkey',  cat:'패브릭', name:'인형 키링 10cm', moq:300, cost:[3500,7000], price:[15000,25000], lead:40,
+    fit:{fandom:5, general:3, kids:4}, vendorType:'봉제 공장',
+    spec:'폴리에스터 + 금속 키링, KC 인증', desc:'가방 데코 유행 지속. 인형보다 진입 부담 낮음' },
+  { id:'fb-cushion',  cat:'패브릭', name:'쿠션(등신/사각)', moq:200, cost:[7000,14000], price:[25000,45000], lead:30,
+    fit:{fandom:4, general:3, kids:3}, vendorType:'봉제 공장',
+    spec:'40cm, 커버 분리형 권장', desc:'커버 분리형이 세탁 리뷰 방어에 유리' },
+  { id:'fb-blanket',  cat:'패브릭', name:'담요', moq:200, cost:[6000,12000], price:[22000,39000], lead:25,
+    fit:{fandom:3, general:4, kids:3}, vendorType:'봉제 공장',
+    spec:'극세사 100×150cm, 파우치 포함', desc:'사무실 수요로 일반 타깃에도 강함. 겨울 시즌성' },
+  { id:'fb-pouch',    cat:'패브릭', name:'파우치', moq:200, cost:[2500,6000], price:[12000,22000], lead:20,
+    fit:{fandom:4, general:4, kids:3}, vendorType:'봉제 공장',
+    spec:'캔버스/타포린, 지퍼', desc:'실용성 좋아 일반 판매 안정적. 전면 인쇄 디자인 승부' },
+  { id:'fb-ecobag',   cat:'패브릭', name:'에코백', moq:100, cost:[3000,7000], price:[15000,28000], lead:15,
+    fit:{fandom:3, general:4, kids:2}, vendorType:'판촉물',
+    spec:'캔버스 10수, 실크스크린/전사', desc:'행사·팝업 필수. 원단 두께(수)가 체감 품질 좌우' },
+  { id:'fb-tshirt',   cat:'패브릭', name:'티셔츠', moq:100, cost:[6000,12000], price:[25000,45000], lead:15,
+    fit:{fandom:4, general:3, kids:3}, vendorType:'판촉물',
+    spec:'면 20수, 실크스크린/DTF', desc:'사이즈 재고 리스크 있음(S~2XL). 수요조사 후 제작 권장' },
+  { id:'fb-hoodie',   cat:'패브릭', name:'후드집업/맨투맨', moq:100, cost:[14000,25000], price:[49000,79000], lead:20,
+    fit:{fandom:4, general:2, kids:2}, vendorType:'판촉물',
+    spec:'면혼방 특양면, 자수/나염', desc:'객단가 최상급. 자수 로고가 프리미엄 포인트' },
+  { id:'fb-socks',    cat:'패브릭', name:'양말', moq:300, cost:[1500,3000], price:[6000,12000], lead:25,
+    fit:{fandom:3, general:4, kids:4}, vendorType:'봉제 공장',
+    spec:'자카드 직조, 페어 포장', desc:'선물 세트 구성용. 3족 세트 패키지 전략' },
+  { id:'fb-towel',    cat:'패브릭', name:'슬로건 타월', moq:200, cost:[4000,8000], price:[18000,30000], lead:25,
+    fit:{fandom:5, general:1, kids:1}, vendorType:'봉제 공장',
+    spec:'면 30수 전사, 20×110cm', desc:'공연·스포츠 행사 연계. 행사 없으면 회전 느림' },
+  { id:'fb-cap',      cat:'패브릭', name:'볼캡', moq:100, cost:[6000,11000], price:[25000,42000], lead:25,
+    fit:{fandom:3, general:4, kids:2}, vendorType:'판촉물',
+    spec:'면 트윌, 자수, 사이즈 조절', desc:'로고 자수 하나로 데일리 착용 가능한 디자인이 승부처' },
+
+  /* ---------- 리빙 ---------- */
+  { id:'lv-mug',      cat:'리빙', name:'머그컵', moq:100, cost:[3500,7000], price:[14000,25000], lead:12,
+    fit:{fandom:4, general:4, kids:2}, vendorType:'판촉물',
+    spec:'도자기 330ml, 전사 인쇄', desc:'선물 수요 안정적. 박스 패키지 포함해 급 올리기' },
+  { id:'lv-glass',    cat:'리빙', name:'유리컵', moq:100, cost:[3000,6500], price:[12000,22000], lead:12,
+    fit:{fandom:4, general:4, kids:1}, vendorType:'판촉물',
+    spec:'유리 400ml, UV/실크 인쇄', desc:'카페 콜라보 감성. 파손 대비 포장 강화 필수' },
+  { id:'lv-tumbler',  cat:'리빙', name:'텀블러', moq:100, cost:[7000,14000], price:[25000,42000], lead:15,
+    fit:{fandom:3, general:4, kids:2}, vendorType:'판촉물',
+    spec:'스테인리스 500ml, 레이저/전사', desc:'실용 굿즈 대표. 기업 협업 제안에도 활용' },
+  { id:'lv-coaster',  cat:'리빙', name:'코스터(4개 세트)', moq:200, cost:[1800,4000], price:[9000,16000], lead:10,
+    fit:{fandom:3, general:4, kids:1}, vendorType:'판촉물',
+    spec:'코르크/세라믹, 4매 세트', desc:'세트 포장으로 객단가 확보' },
+  { id:'lv-moodlamp', cat:'리빙', name:'아크릴 무드등', moq:100, cost:[6000,12000], price:[25000,45000], lead:20,
+    fit:{fandom:4, general:3, kids:3}, vendorType:'전자 굿즈',
+    spec:'LED 베이스 + 아크릴 패널, KC 인증', desc:'인증(KC) 필요. 선물 포장 수요 높음' },
+  { id:'lv-umbrella', cat:'리빙', name:'우산(장/3단)', moq:100, cost:[5500,11000], price:[20000,35000], lead:30,
+    fit:{fandom:2, general:4, kids:3}, vendorType:'판촉물',
+    spec:'60cm 8K, 전사 인쇄', desc:'실용 판촉 강자. 전면 패턴 디자인이면 팬덤도 반응' },
+  { id:'lv-scent',    cat:'리빙', name:'방향제(석고/카드)', moq:200, cost:[2500,5500], price:[12000,20000], lead:15,
+    fit:{fandom:3, general:4, kids:1}, vendorType:'판촉물',
+    spec:'석고 방향제 + 끈, 향 선택', desc:'차량용 수요. 향 품질이 재구매 좌우' },
+
+  /* ---------- 배지·금속 ---------- */
+  { id:'mt-canbadge', cat:'배지·금속', name:'캔뱃지(57mm)', moq:100, cost:[500,1200], price:[3000,6000], lead:7,
+    fit:{fandom:5, general:2, kids:4}, vendorType:'지류 인쇄',
+    spec:'57mm, 유광/무광 코팅', desc:'최저가 굿즈. 랜덤 세트로 묶어 판매 효율 업' },
+  { id:'mt-pinbadge', cat:'배지·금속', name:'금속 핀뱃지(에나멜)', moq:300, cost:[1800,4000], price:[8000,16000], lead:25,
+    fit:{fandom:5, general:2, kids:2}, vendorType:'금속 굿즈',
+    spec:'아연합금 + 에나멜, 나비클러치', desc:'수집 문화 탄탄. 도금 색(금/은/흑니켈) 선택이 감성 포인트' },
+  { id:'mt-keyring',  cat:'배지·금속', name:'메탈 키링', moq:300, cost:[2200,5000], price:[10000,20000], lead:25,
+    fit:{fandom:4, general:3, kids:2}, vendorType:'금속 굿즈',
+    spec:'아연합금 주물, 도금', desc:'아크릴보다 고급감. 단가는 높지만 프리미엄 라인용' },
+
+  /* ---------- 테크 ---------- */
+  { id:'tc-griptok',  cat:'테크', name:'그립톡(스마트톡)', moq:100, cost:[1500,3500], price:[9000,16000], lead:10,
+    fit:{fandom:5, general:4, kids:3}, vendorType:'판촉물',
+    spec:'에폭시/아크릴 탑, 접이식 베이스', desc:'폰 액세서리 스테디. 에폭시 돔이 체감 품질 높음' },
+  { id:'tc-phonecase', cat:'테크', name:'폰케이스(주문형)', moq:50, cost:[4000,8000], price:[18000,29000], lead:10,
+    fit:{fandom:4, general:3, kids:2}, vendorType:'판촉물',
+    spec:'하드/젤리, 기종별 UV 인쇄', desc:'기종 파편화 주의 — 주문 후 제작(POD) 방식 권장' },
+  { id:'tc-mousepad', cat:'테크', name:'장패드(데스크 매트)', moq:100, cost:[4500,9000], price:[20000,35000], lead:15,
+    fit:{fandom:4, general:4, kids:2}, vendorType:'판촉물',
+    spec:'800×300mm, 승화전사, 오버로크', desc:'데스크테리어 수요 지속 성장. 일러스트 IP와 최고 궁합' },
+  { id:'tc-keycap',   cat:'테크', name:'아티산 키캡', moq:100, cost:[3000,7000], price:[15000,30000], lead:25,
+    fit:{fandom:3, general:3, kids:1}, vendorType:'전자 굿즈',
+    spec:'레진/PBT, 체리 프로파일', desc:'키보드 커뮤니티 니치 시장. 소량 한정판 전략' },
+  { id:'tc-cableholder', cat:'테크', name:'케이블 홀더', moq:200, cost:[1000,2500], price:[5000,9000], lead:12,
+    fit:{fandom:3, general:4, kids:3}, vendorType:'판촉물',
+    spec:'실리콘/PVC 몰드', desc:'저단가 실용템. 사은품 활용도 높음' },
+
+  /* ---------- 피규어·토이 ---------- */
+  { id:'fg-minifig',  cat:'피규어·토이', name:'미니 피규어(PVC 5~8cm)', moq:1000, cost:[3500,8000], price:[15000,35000], lead:60,
+    fit:{fandom:5, general:3, kids:4}, vendorType:'피규어 OEM',
+    spec:'PVC, 원형 조형+도색, KC 인증', desc:'원형 조형비(별도 100~300만원) 선투자 필요. MOQ 높아 검증된 IP만 권장' },
+  { id:'fg-gacha',    cat:'피규어·토이', name:'가챠(캡슐토이) 세트', moq:1000, cost:[2500,6000], price:[5000,10000], lead:60,
+    fit:{fandom:4, general:4, kids:5}, vendorType:'피규어 OEM',
+    spec:'캡슐 65mm + 내용물 + 대지', desc:'팝업·오프라인 머신 운영과 세트. 랜덤성으로 반복 구매 유도' },
+  { id:'fg-arcade',   cat:'피규어·토이', name:'전자 굿즈(LED 미니 캐비닛 키링 등)', moq:1000, cost:[3500,9000], price:[15000,29000], lead:75,
+    fit:{fandom:5, general:3, kids:4}, vendorType:'전자 굿즈',
+    spec:'ABS + LED/버튼셀, KC 인증', desc:'금형+인증 선투자 필요. 차별화 확실하지만 진입장벽 높음 — 중국 OEM 견적 비교 필수' },
+
+  /* ---------- 컬렉션·패키지 ---------- */
+  { id:'pk-pcholder', cat:'컬렉션·패키지', name:'포토카드 홀더(콜렉트북)', moq:200, cost:[2500,5500], price:[12000,20000], lead:15,
+    fit:{fandom:5, general:1, kids:2}, vendorType:'지류 인쇄',
+    spec:'PP 내지 + 커버, A5', desc:'포토카드와 세트 판매 시너지' },
+  { id:'pk-idstrap',  cat:'컬렉션·패키지', name:'ID 카드홀더+스트랩', moq:200, cost:[2800,6000], price:[14000,24000], lead:20,
+    fit:{fandom:4, general:4, kids:2}, vendorType:'판촉물',
+    spec:'PVC 홀더 + 폴리 스트랩', desc:'행사·오피스 겸용. 스트랩 직조 인쇄가 포인트' },
+  { id:'pk-fan',      cat:'컬렉션·패키지', name:'부채(여름 시즌)', moq:200, cost:[800,2000], price:[4000,9000], lead:10,
+    fit:{fandom:4, general:4, kids:4}, vendorType:'지류 인쇄',
+    spec:'PP/종이, 자루형', desc:'여름 행사 필수. 단가 낮아 증정용 겸용' },
+  { id:'pk-giftset',  cat:'컬렉션·패키지', name:'선물 세트 패키지(박스 구성)', moq:100, cost:[3000,8000], price:[35000,69000], lead:20,
+    fit:{fandom:5, general:4, kids:3}, vendorType:'지류 인쇄',
+    spec:'싸바리 박스 + 완충재 + 띠지', desc:'단품 3~4종 묶음 + 전용 박스 = 객단가 2배. 시즌 선물 수요 공략' }
+];
+
+/* 카테고리 목록 (필터용) */
+var GF_CATEGORIES = ['전체','아크릴','지류·문구','패브릭','리빙','배지·금속','테크','피규어·토이','컬렉션·패키지'];
+
+/* 제작처 유형 목록 (설정 › 제작처 등록과 매칭) */
+var GF_VENDOR_TYPES = ['아크릴 인쇄','지류 인쇄','봉제 공장','판촉물','금속 굿즈','전자 굿즈','피규어 OEM','기타'];

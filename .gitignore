@@ -1,0 +1,10 @@
+# OS / editor
+desktop.ini
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# 로컬 전용 (프로젝트 데이터는 브라우저 저장이라 파일 없음)
+*.log

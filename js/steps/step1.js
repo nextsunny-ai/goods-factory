@@ -1,0 +1,153 @@
+/* ============ 1단계: 기획 입력 ============ */
+var GF_STEP1 = (function () {
+  var $ = GF_UI.$, esc = GF_UI.esc;
+
+  var IP_TYPES = ['캐릭터', '웹툰·만화', '게임', '아이돌·아티스트', '영화·드라마', '브랜드·기업', '자체 창작', '기타'];
+  var PURPOSES = ['온라인 판매', '팝업스토어·행사', '펀딩(텀블벅·와디즈)', '기업 판촉·증정', 'B2B 입점·납품'];
+
+  function promptCtx() {
+    var p = GF_STORE.state.project.plan;
+    return {
+      ipName: p.ipName, ipDesc: p.ipDesc,
+      targetName: GF_STORE.targetName() + (p.ageGroup ? ' (' + p.ageGroup + ')' : ''),
+      budgetText: p.budget ? GF_UI.won(p.budget) : ''
+    };
+  }
+
+  function render(root) {
+    var p = GF_STORE.state.project.plan;
+
+    var html = ''
+      + '<div class="page-head">'
+      + '  <span class="step-tag">STEP 1</span>'
+      + '  <h1>기획 입력</h1>'
+      + '  <p>무슨 IP로, 누구에게, 얼마의 예산으로 만들지 정합니다. 여기 입력한 내용이 이후 모든 단계의 기준이 됩니다.</p>'
+      + '</div>'
+
+      + '<div class="card"><h3>기획 방식</h3>'
+      + '<p class="desc">직접 다 채워도 되고, 큰 방향은 AI에게 맡기고 결과를 참고해도 됩니다. (IP 이름만 있으면 AI 모드를 쓸 수 있습니다)</p>'
+      + '<div class="chip-group" id="f-planMode">'
+      + '<button class="chip' + (p.planMode !== 'ai' ? ' on' : '') + '" data-v="manual">내가 직접 작성</button>'
+      + '<button class="chip' + (p.planMode === 'ai' ? ' on' : '') + '" data-v="ai">AI에게 기획 맡기기</button>'
+      + '</div>'
+      + '<div id="aiPlanBox" style="margin-top:14px"></div>'
+      + '</div>'
+
+      + '<div class="card"><h3>IP(지식재산) 정보</h3>'
+      + '<div class="form-grid">'
+      + '  <div class="field"><label>IP 이름 <small>작품·캐릭터·브랜드 이름</small></label>'
+      + '    <input type="text" id="f-ipName" placeholder="예: 버블보블, 화산귀환, 우리 회사 마스코트" value="' + esc(p.ipName) + '"></div>'
+      + '  <div class="field"><label>IP 종류</label><select id="f-ipType">'
+      + IP_TYPES.map(function (t) { return '<option' + (p.ipType === t ? ' selected' : '') + '>' + t + '</option>'; }).join('')
+      + '  </select></div>'
+      + '  <div class="field full"><label>IP 한 줄 소개 <small>AI 프롬프트에 그대로 들어갑니다 — 구체적일수록 좋음</small></label>'
+      + '    <textarea id="f-ipDesc" placeholder="예: 1986년 출시된 레트로 아케이드 게임. 초록 공룡 캐릭터가 버블을 쏘는 픽셀 그래픽이 특징">' + esc(p.ipDesc) + '</textarea></div>'
+      + '</div></div>'
+
+      + '<div class="card"><h3>타깃과 예산</h3>'
+      + '<div class="form-grid">'
+      + '  <div class="field"><label>주요 타깃</label><select id="f-target">'
+      + '    <option value="fandom"' + (p.target === 'fandom' ? ' selected' : '') + '>팬덤 (이 IP를 아는 팬)</option>'
+      + '    <option value="general"' + (p.target === 'general' ? ' selected' : '') + '>일반 소비자 (디자인으로 구매)</option>'
+      + '    <option value="kids"' + (p.target === 'kids' ? ' selected' : '') + '>키즈·패밀리</option>'
+      + '  </select></div>'
+      + '  <div class="field"><label>연령대</label>'
+      + '    <input type="text" id="f-ageGroup" placeholder="예: 20~30대" value="' + esc(p.ageGroup) + '"></div>'
+      + '  <div class="field"><label>제작 예산 <small>원 — 굿즈 제작비 기준</small></label>'
+      + '    <input type="number" id="f-budget" step="100000" min="0" value="' + (p.budget || '') + '"></div>'
+      + '  <div class="field"><label>목표 일정 <small>행사일·출시 희망일</small></label>'
+      + '    <input type="text" id="f-deadline" placeholder="예: 2026-09-15 팝업 오픈" value="' + esc(p.deadline) + '"></div>'
+      + '  <div class="field full"><label>제작 목적</label><div class="chip-group" id="f-purpose">'
+      + PURPOSES.map(function (t) { return '<button class="chip' + (p.purpose === t ? ' on' : '') + '" data-v="' + t + '">' + t + '</button>'; }).join('')
+      + '  </div></div>'
+      + '  <div class="field full"><label>판매 채널 <small>복수 선택 — 수수료가 마진 계산에 반영됩니다</small></label><div class="chip-group" id="f-channels">'
+      + GF_CHANNELS.map(function (ch) {
+          var on = p.channels.indexOf(ch.id) >= 0;
+          return '<button class="chip' + (on ? ' on' : '') + '" data-v="' + ch.id + '">' + ch.name + ' <small>' + ch.fee[0] + '~' + ch.fee[1] + '%</small></button>';
+        }).join('')
+      + '  </div></div>'
+      + '</div></div>'
+
+      + '<div class="card"><h3>이 단계의 AI 프롬프트</h3>'
+      + '<p class="desc">복사해서 쓰시는 챗GPT·제미나이·클로드 채팅창에 붙여넣으면, 입력한 내용 기준으로 기획을 넓혀줍니다.</p>'
+      + GF_AI.enhanceBtn('aiEnhStep1', 'AI로 기획 자동 완성', 'text', '입력한 IP만으로 매력·타깃·추천 굿즈·컨셉까지 기획을 자동으로 채워줍니다.')
+      + '<div id="p1-prompts" style="margin-top:14px"></div>'
+      + '</div>'
+
+      + GF_EXPORT_STEPDOC.barHtml(1)
+
+      + '<div class="step-footer">'
+      + '  <span class="hint">입력 내용은 자동 저장됩니다</span>'
+      + '  <button class="btn btn-primary" id="btnNext1">다음 → 시장 분석</button>'
+      + '</div>';
+
+    root.innerHTML = html;
+    GF_EXPORT_STEPDOC.bindBar(1);
+    renderPrompts();
+    renderAiPlan();
+    GF_AI.bindEnhance(root);
+    var enh = GF_UI.$('#aiEnhStep1');
+    if (enh) enh.addEventListener('click', function () { GF_UI.toast('연결됨 — 자동 생성은 v1.3에서 제공됩니다. 지금은 아래 프롬프트를 쓰세요'); });
+
+    GF_UI.$all('#f-planMode .chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        p.planMode = chip.getAttribute('data-v');
+        GF_UI.$all('#f-planMode .chip').forEach(function (c) { c.classList.toggle('on', c === chip); });
+        GF_STORE.save();
+        renderAiPlan();
+      });
+    });
+
+    /* 입력 바인딩 */
+    bind('f-ipName', 'ipName'); bind('f-ipDesc', 'ipDesc');
+    bind('f-ageGroup', 'ageGroup'); bind('f-deadline', 'deadline');
+    $('#f-ipType').addEventListener('change', function () { p.ipType = this.value; GF_STORE.save(); });
+    $('#f-target').addEventListener('change', function () { p.target = this.value; GF_STORE.save(); renderPrompts(); });
+    $('#f-budget').addEventListener('input', function () { p.budget = Number(this.value) || 0; GF_STORE.save(); renderPrompts(); });
+
+    GF_UI.$all('#f-purpose .chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        p.purpose = chip.getAttribute('data-v');
+        GF_UI.$all('#f-purpose .chip').forEach(function (c) { c.classList.toggle('on', c === chip); });
+        GF_STORE.save();
+      });
+    });
+    GF_UI.$all('#f-channels .chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var v = chip.getAttribute('data-v');
+        var idx = p.channels.indexOf(v);
+        if (idx >= 0) p.channels.splice(idx, 1); else p.channels.push(v);
+        chip.classList.toggle('on');
+        GF_STORE.save();
+      });
+    });
+
+    $('#btnNext1').addEventListener('click', function () {
+      if (!p.ipName.trim()) { GF_UI.toast('IP 이름을 입력해주세요'); $('#f-ipName').focus(); return; }
+      GF_APP.go(2);
+    });
+
+    function bind(id, key) {
+      $('#' + id).addEventListener('input', function () { p[key] = this.value; GF_STORE.save(); });
+      $('#' + id).addEventListener('blur', renderPrompts);
+    }
+  }
+
+  function renderPrompts() {
+    var box = GF_UI.$('#p1-prompts');
+    if (!box) return;
+    box.innerHTML = GF_UI.promptListHtml(GF_PROMPTS.step1(promptCtx()), 's1-');
+    GF_UI.bindPromptCopy(box);
+  }
+
+  function renderAiPlan() {
+    var box = GF_UI.$('#aiPlanBox');
+    if (!box) return;
+    if (GF_STORE.state.project.plan.planMode !== 'ai') { box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="note">아래 프롬프트 하나면 AI가 기획 전체(매력 포인트·타깃·추천 굿즈·컨셉·전략)를 짜줍니다. 결과를 보고 이 페이지 항목을 채우거나, 마음에 드는 부분만 옮기세요.</div>'
+      + GF_UI.promptListHtml(GF_PROMPTS.step1ai(promptCtx()), 's1ai-');
+    GF_UI.bindPromptCopy(box);
+  }
+
+  return { render: render, promptCtx: promptCtx };
+})();

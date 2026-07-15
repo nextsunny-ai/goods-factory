@@ -1,0 +1,297 @@
+/* ============ 4단계: 디자인 방향 + 이미지 프롬프트 ============ */
+var GF_STEP4 = (function () {
+  var $ = GF_UI.$, esc = GF_UI.esc;
+
+  function render(root) {
+    var proj = GF_STORE.state.project;
+    var d = proj.design;
+
+    var html = ''
+      + '<div class="page-head">'
+      + '  <span class="step-tag">STEP 4</span>'
+      + '  <h1>디자인 · 이미지 프롬프트</h1>'
+      + '  <p>디자인 방향을 정하면, 선택한 굿즈마다 이미지 생성 프롬프트가 자동으로 만들어집니다. 복사해서 제미나이·챗GPT 이미지 생성에 붙여넣으세요.</p>'
+      + '</div>'
+
+      + '<div class="card"><h3>추천 디자인 컨셉 — 골라만 주세요</h3>'
+      + '<p class="desc">입력한 IP 종류·타깃에 맞춰 어울리는 순서로 제안합니다. 카드를 고르면 아래 항목이 자동으로 채워지고, 원하면 직접 고칠 수 있습니다.</p>'
+      + '<div class="concept-grid" id="conceptGrid"></div>'
+      + '</div>'
+
+      + '<div class="card"><h3>디자인 방향 (자동 입력 — 수정 가능)</h3>'
+      + '<div class="form-grid">'
+      + '  <div class="field"><label>디자인 컨셉 <small>한 줄로</small></label>'
+      + '    <input type="text" id="d-concept" placeholder="예: 레트로 아케이드 감성, 도트 그래픽" value="' + esc(d.concept) + '"></div>'
+      + '  <div class="field"><label>메인 컬러 <small>색 이름이나 HEX</small></label>'
+      + '    <input type="text" id="d-palette" placeholder="예: 하늘색+노랑, #7EC8E3" value="' + esc(d.palette) + '"></div>'
+      + '  <div class="field"><label>분위기 키워드</label>'
+      + '    <input type="text" id="d-mood" placeholder="예: 아기자기한, 따뜻한, 키치한" value="' + esc(d.mood) + '"></div>'
+      + '  <div class="field"><label>스타일 키워드 <small>일러스트 시안용</small></label>'
+      + '    <input type="text" id="d-keywords" placeholder="예: 픽셀아트, 벡터 일러스트, 수채화" value="' + esc(d.keywords) + '"></div>'
+      + '</div>'
+      + '<div class="note"><b>팁:</b> 실제 IP 이미지(원작 스프라이트·공식 일러스트)가 있다면 프롬프트와 함께 <b>레퍼런스 이미지로 첨부</b>하세요. 시리즈 일관성이 완전히 달라집니다.</div>'
+      + '</div>'
+
+      + '<div class="card"><h3>레퍼런스 이미지 <small style="font-weight:400;color:var(--ink-3)">— 선택</small></h3>'
+      + '<p class="desc">어디서 본 괜찮은 <b>제품</b> 사진이나, 적용하고 싶은 <b>디자인</b> 예시를 넣어두세요. 생성 프롬프트에 "이 레퍼런스처럼" 지시가 자동으로 붙고, AI에 프롬프트와 함께 이 이미지를 첨부하면 훨씬 비슷하게 나옵니다.</p>'
+      + '<div style="display:flex; gap:8px; margin-bottom:12px">'
+      + '<button class="btn btn-sm btn-soft" id="btnAddProductRef">+ 제품 레퍼런스</button>'
+      + '<button class="btn btn-sm btn-soft" id="btnAddDesignRef">+ 디자인 레퍼런스</button>'
+      + '<input type="file" id="refFile" accept="image/*" class="hidden">'
+      + '</div>'
+      + '<div id="refList" class="cut-list"></div>'
+      + '</div>'
+
+      + '<div class="card"><h3>컷 종류 선택</h3>'
+      + '<p class="desc">굿즈마다 어떤 용도의 이미지를 만들지 고르세요. 복수 선택하면 굿즈 × 컷 종류만큼 프롬프트가 나옵니다.</p>'
+      + '<div class="chip-group" id="styleChips">'
+      + GF_PROMPTS.imageStyles.map(function (s) {
+          var on = (d.styleId || 'product').split(',').indexOf(s.id) >= 0;
+          return '<button class="chip' + (on ? ' on' : '') + '" data-style="' + s.id + '" title="' + esc(s.desc) + '">' + esc(s.name) + '</button>';
+        }).join('')
+      + '</div></div>'
+
+      + '<div class="card"><h3>생성된 이미지 프롬프트</h3>'
+      + '<p class="desc">아래 프롬프트는 "용도 선언" 문법으로 작성됩니다 — 어디에 쓸 이미지인지 먼저 선언하면 AI가 결과물의 완성도를 스스로 상업용 수준으로 맞춥니다.</p>'
+      + GF_AI.enhanceBtn('aiEnhStep4', '프롬프트로 이미지 일괄 생성', 'image', '이 프롬프트들로 굿즈 시안 이미지를 앱에서 바로, 여러 장 자동 생성해 상세페이지에 넣어줍니다.')
+      + '<div id="imgPrompts" style="margin-top:14px"></div></div>'
+
+      + '<div class="card"><h3>디자인 컨셉 잡기 프롬프트 (텍스트)</h3><div id="p4-prompts"></div></div>'
+
+      + GF_EXPORT_STEPDOC.barHtml(4)
+
+      + '<div class="step-footer">'
+      + '  <button class="btn btn-ghost" id="btnPrev4">← 굿즈 선정</button>'
+      + '  <button class="btn btn-primary" id="btnNext4">다음 → 산출물 만들기</button>'
+      + '</div>';
+
+    root.innerHTML = html;
+    GF_EXPORT_STEPDOC.bindBar(4);
+    renderConcepts();
+
+    ['concept', 'palette', 'mood', 'keywords'].forEach(function (key) {
+      var inp = $('#d-' + key);
+      inp.addEventListener('input', function () { d[key] = this.value; GF_STORE.save(); });
+      inp.addEventListener('blur', renderImgPrompts);
+    });
+
+    GF_UI.$all('[data-style]').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var id = chip.getAttribute('data-style');
+        var cur = (d.styleId || 'product').split(',').filter(Boolean);
+        var idx = cur.indexOf(id);
+        if (idx >= 0) cur.splice(idx, 1); else cur.push(id);
+        if (!cur.length) cur = ['product'];
+        d.styleId = cur.join(',');
+        GF_STORE.save();
+        GF_UI.$all('[data-style]').forEach(function (c) {
+          c.classList.toggle('on', cur.indexOf(c.getAttribute('data-style')) >= 0);
+        });
+        renderImgPrompts();
+      });
+    });
+
+    renderImgPrompts();
+    renderRefs();
+    GF_AI.bindEnhance(root);
+    var enh4 = $('#aiEnhStep4');
+    if (enh4) enh4.addEventListener('click', function () { GF_UI.toast('연결됨 — 이미지 자동 생성은 v1.3에서 제공됩니다. 지금은 프롬프트를 복사해 쓰세요'); });
+
+    /* 레퍼런스 이미지 업로드 */
+    var pendingKind = 'product';
+    $('#btnAddProductRef').addEventListener('click', function () { pendingKind = 'product'; $('#refFile').click(); });
+    $('#btnAddDesignRef').addEventListener('click', function () { pendingKind = 'design'; $('#refFile').click(); });
+    $('#refFile').addEventListener('change', function () {
+      if (!this.files[0]) return;
+      GF_UI.readImage(this.files[0], 900, function (dataUrl) {
+        proj.refs = proj.refs || [];
+        proj.refs.push({ img: dataUrl, kind: pendingKind, memo: '' });
+        GF_STORE.save();
+        renderRefs();
+        renderImgPrompts();
+        GF_UI.toast((pendingKind === 'product' ? '제품' : '디자인') + ' 레퍼런스를 추가했습니다');
+      });
+      this.value = '';
+    });
+
+    var box4 = $('#p4-prompts');
+    box4.innerHTML = GF_UI.promptListHtml(GF_PROMPTS.step4text(GF_STEP1.promptCtx(), GF_STEP3.goodsNames()), 's4t-');
+    GF_UI.bindPromptCopy(box4);
+
+    $('#btnPrev4').addEventListener('click', function () { GF_APP.go(3); });
+    $('#btnNext4').addEventListener('click', function () { GF_APP.go(5); });
+  }
+
+  /* 레퍼런스 이미지 목록 */
+  function renderRefs() {
+    var proj = GF_STORE.state.project;
+    var box = $('#refList');
+    if (!box) return;
+    proj.refs = proj.refs || [];
+    if (!proj.refs.length) {
+      box.innerHTML = '<p style="color:var(--ink-3);font-size:12.5px">아직 없음 — 참고할 제품/디자인 이미지가 있으면 추가하세요.</p>';
+      return;
+    }
+    box.innerHTML = proj.refs.map(function (r, i) {
+      return '<div class="cut-row">'
+        + '<div class="cut-thumb"><img src="' + r.img + '"></div>'
+        + '<div class="cut-fields">'
+        + '<div style="font-size:12.5px;font-weight:700;color:' + (r.kind === 'product' ? 'var(--accent-deep)' : 'var(--blue)') + '">'
+        + (r.kind === 'product' ? '제품 레퍼런스' : '디자인 레퍼런스') + '</div>'
+        + '<input type="text" data-refmemo="' + i + '" value="' + esc(r.memo || '') + '" placeholder="메모 (예: 이 구성/배색이 마음에 듦)">'
+        + '</div>'
+        + '<button class="btn btn-xs btn-ghost" data-refdel="' + i + '">삭제</button></div>';
+    }).join('');
+    GF_UI.$all('[data-refmemo]', box).forEach(function (inp) {
+      inp.addEventListener('input', function () { proj.refs[Number(inp.getAttribute('data-refmemo'))].memo = this.value; GF_STORE.save(); });
+    });
+    GF_UI.$all('[data-refdel]', box).forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        proj.refs.splice(Number(btn.getAttribute('data-refdel')), 1);
+        GF_STORE.save(); renderRefs(); renderImgPrompts();
+      });
+    });
+  }
+
+  /* 추천 컨셉 카드 — 프로그램이 먼저 제안 */
+  function renderConcepts() {
+    var proj = GF_STORE.state.project;
+    var d = proj.design;
+    var grid = $('#conceptGrid');
+    if (!grid) return;
+    var ranked = gfRankConcepts(proj.plan.ipType, proj.plan.target);
+    grid.innerHTML = ranked.map(function (c, i) {
+      var picked = d.concept && d.concept.indexOf(c.name) === 0;
+      return '<div class="concept-card' + (picked ? ' picked' : '') + '" data-concept="' + c.id + '">'
+        + (i < 3 && !picked ? '<span class="c-badge">추천</span>' : '')
+        + '<div class="c-name">' + esc(c.name) + '</div>'
+        + '<div class="c-mood">' + esc(c.mood) + '</div>'
+        + '<div class="c-pal">' + c.palette.map(function (hex) { return '<span style="background:' + hex + '"></span>'; }).join('') + '</div>'
+        + '</div>';
+    }).join('');
+    GF_UI.$all('[data-concept]', grid).forEach(function (card) {
+      card.addEventListener('click', function () {
+        var cid = card.getAttribute('data-concept');
+        var c = null;
+        GF_CONCEPTS.forEach(function (x) { if (x.id === cid) c = x; });
+        if (!c) return;
+        d.concept = c.name + ' — ' + c.mood;
+        d.palette = c.paletteText + ' (' + c.palette.join(', ') + ')';
+        d.mood = c.mood;
+        d.keywords = c.keywords;
+        GF_STORE.save();
+        /* 입력칸에 즉시 반영 (파일 선택=즉시 적용과 같은 원칙) */
+        $('#d-concept').value = d.concept;
+        $('#d-palette').value = d.palette;
+        $('#d-mood').value = d.mood;
+        $('#d-keywords').value = d.keywords;
+        renderConcepts();
+        renderImgPrompts();
+        GF_UI.toast('"' + c.name + '" 컨셉을 적용했습니다 — 아래 항목에서 수정 가능');
+      });
+    });
+  }
+
+  /* 선택 굿즈 × 선택 컷 종류 → 품목별 프롬프트 생성 */
+  function buildImagePrompts() {
+    var proj = GF_STORE.state.project;
+    var d = proj.design;
+    var plan = proj.plan;
+    var styleIds = (d.styleId || 'detail').split(',').filter(Boolean);
+    var out = [];
+
+    var refHint = '';
+    var hasProductRef = (proj.refs || []).some(function (r) { return r.kind === 'product'; });
+    var hasDesignRef = (proj.refs || []).some(function (r) { return r.kind === 'design'; });
+    if (hasProductRef) refHint += ' (첨부한 제품 레퍼런스 사진의 형태·구성을 참고해서 우리 IP로 바꿔)';
+    if (hasDesignRef) refHint += ' (첨부한 디자인 레퍼런스의 스타일·배색을 우리 것에 적용해서)';
+
+    var ipLine = plan.ipName
+      ? '"' + plan.ipName + '" IP 굿즈이고' + (plan.ipDesc ? ' (' + plan.ipDesc + ')' : '') + (d.concept ? ', 디자인 컨셉은 ' + d.concept + '.' : '.')
+      : (d.concept ? '디자인 컨셉은 ' + d.concept + '.' : '');
+    ipLine += refHint;
+
+    var tone = GF_TARGET_TONE[plan.target] || GF_TARGET_TONE.general;
+
+    proj.goods.forEach(function (g) {
+      var c = GF_STORE.catalogById(g.catalogId);
+      if (!c) return;
+      var det = gfItemDetail(c);
+      styleIds.forEach(function (sid) {
+        var style = null;
+        GF_PROMPTS.imageStyles.forEach(function (s) { if (s.id === sid) style = s; });
+        if (!style) return;
+        var ctx = {
+          goodsName: (plan.ipName ? plan.ipName + ' ' : '') + c.name,
+          ipLine: ipLine, material: c.spec,
+          mood: d.mood, palette: d.palette, styleLine: d.keywords,
+          views: det.views,
+          appeals: (det.appeals || []).concat(d.keywords ? [d.keywords] : []).join(', '),
+          tone: tone, guard: GF_IMG_GUARD
+        };
+        out.push({
+          title: c.name + ' — ' + style.name,
+          use: '제미나이(나노바나나)·챗GPT 이미지 생성 — 가능하면 IP·레퍼런스 이미지 첨부',
+          text: style.build(ctx)
+        });
+      });
+    });
+    return out;
+  }
+
+  function renderImgPrompts() {
+    var box = $('#imgPrompts');
+    if (!box) return;
+    var prompts = buildImagePrompts();
+    if (!prompts.length) {
+      box.innerHTML = '<p style="color:var(--ink-3); font-size:13.5px">3단계에서 굿즈를 선택하면 프롬프트가 자동 생성됩니다.</p>';
+      return;
+    }
+    box.innerHTML = '<div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:10px">'
+      + '<button class="btn btn-dark btn-sm" id="btnCopyAllPrompts">프롬프트 ' + prompts.length + '개 전체 복사</button>'
+      + '<button class="btn btn-primary btn-sm" id="btnDownPrompts">프롬프트 파일 저장 (.txt)</button></div>'
+      + GF_UI.promptListHtml(prompts, 's4i-');
+    GF_UI.bindPromptCopy(box);
+    $('#btnCopyAllPrompts').addEventListener('click', function () {
+      var all = prompts.map(function (p, i) { return '【' + (i + 1) + '. ' + p.title + '】\n' + p.text; }).join('\n\n----------------\n\n');
+      GF_UI.copyText(all, '프롬프트 전체를 복사했습니다');
+    });
+    $('#btnDownPrompts').addEventListener('click', downloadAllPrompts);
+  }
+
+  /* 전 단계 프롬프트를 한 텍스트 파일로 저장 (이미지 프롬프트 포함) */
+  function downloadAllPrompts() {
+    var proj = GF_STORE.state.project;
+    var ctx = GF_STEP1.promptCtx();
+    var names = GF_STEP3.goodsNames();
+    var groups = [
+      { name: '1단계 — 기획', list: GF_PROMPTS.step1(ctx) },
+      { name: '2단계 — 시장조사', list: GF_PROMPTS.step2(ctx) },
+      { name: '3단계 — 굿즈 구성', list: GF_PROMPTS.step3(ctx, names) },
+      { name: '4단계 — 디자인 컨셉', list: GF_PROMPTS.step4text(ctx, names) },
+      { name: '4단계 — 이미지 생성 (제미나이·챗GPT 이미지 모드에 붙여넣기)', list: buildImagePrompts() },
+      { name: '5단계 — 산출물 다듬기', list: GF_PROMPTS.step5(ctx) }
+    ];
+    var out = '===============================================\n'
+      + ' 굿즈 팩토리 — AI 프롬프트 모음\n'
+      + ' 프로젝트: ' + (proj.name || '') + (proj.plan.ipName ? ' / IP: ' + proj.plan.ipName : '') + '\n'
+      + ' 생성일: ' + GF_UI.today() + '\n'
+      + ' 사용법: 아래 프롬프트를 복사해 본인 챗GPT·제미나이·클로드 채팅창에 붙여넣으세요.\n'
+      + '        이미지 프롬프트는 IP 원본 이미지를 함께 첨부하면 훨씬 좋아집니다.\n'
+      + '===============================================\n';
+    groups.forEach(function (grp) {
+      if (!grp.list.length) return;
+      out += '\n\n■■■ ' + grp.name + ' (' + grp.list.length + '개) ■■■\n';
+      grp.list.forEach(function (p, i) {
+        out += '\n【' + (i + 1) + '. ' + p.title + '】 — 붙여넣을 곳: ' + (p.use || 'AI 채팅창') + '\n'
+          + '-----------------------------------------------\n'
+          + p.text + '\n';
+      });
+    });
+    var name = (proj.plan.ipName || proj.name || '굿즈').replace(/[\\/:*?"<>|]/g, '_');
+    GF_UI.download('프롬프트모음_' + name + '_' + GF_UI.today() + '.txt', out, 'text/plain;charset=utf-8');
+    GF_UI.toast('프롬프트 전체를 .txt 파일로 저장했습니다');
+  }
+
+  return { render: render, buildImagePrompts: buildImagePrompts };
+})();
