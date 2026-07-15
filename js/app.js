@@ -109,10 +109,10 @@ var GF_APP = (function () {
       var when = new Date(p.updatedAt);
       var isActive = p.id === active;
       return '<div class="proj-item' + (isActive ? ' on' : '') + '" data-pid="' + p.id + '">'
-        + '<div class="proj-item-main"><div class="proj-item-name">' + GF_UI.esc(p.name || '이름 없음') + (isActive ? ' <span class="proj-cur">지금 열림</span>' : '') + '</div>'
+        + '<div class="proj-item-main" data-popen="' + p.id + '" style="cursor:pointer"><div class="proj-item-name">' + GF_UI.esc(p.name || '이름 없음') + (isActive ? ' <span class="proj-cur">현재</span>' : '') + '</div>'
         + '<div class="proj-item-date">' + (when.getMonth() + 1) + '/' + when.getDate() + ' ' + String(when.getHours()).padStart(2, '0') + ':' + String(when.getMinutes()).padStart(2, '0') + ' 저장</div></div>'
         + '<div class="proj-item-acts">'
-        + (isActive ? '' : '<button class="btn btn-xs btn-primary" data-popen="' + p.id + '">열기</button>')
+        + '<button class="btn btn-xs btn-primary" data-popen="' + p.id + '">' + (isActive ? '작업 열기' : '열기') + '</button>'
         + '<button class="btn btn-xs btn-ghost" data-pdup="' + p.id + '">복제</button>'
         + '<button class="btn btn-xs btn-ghost" data-pren="' + p.id + '">이름변경</button>'
         + '<button class="btn btn-xs btn-ghost" data-pdel="' + p.id + '">삭제</button>'
@@ -126,7 +126,14 @@ var GF_APP = (function () {
 
     $('#mNewFromMgr').addEventListener('click', function () { GF_UI.closeModal(); newProject(); });
     GF_UI.$all('[data-popen]').forEach(function (b) { b.addEventListener('click', function () {
-      if (GF_STORE.openProject(b.getAttribute('data-popen'))) { $('#projectName').value = GF_STORE.state.project.name; GF_AI.refreshPill(); GF_UI.closeModal(); go(GF_STORE.state.project.updatedStep || 1); GF_UI.toast('프로젝트를 열었습니다'); }
+      var id = b.getAttribute('data-popen');
+      if (id !== GF_STORE.activeId()) {
+        if (!GF_STORE.openProject(id)) { GF_UI.toast('프로젝트를 열 수 없습니다'); return; }
+        $('#projectName').value = GF_STORE.state.project.name; GF_AI.refreshPill();
+      }
+      GF_UI.closeModal();
+      go(GF_STORE.state.project.updatedStep || 1);
+      GF_UI.toast('"' + GF_STORE.state.project.name + '" 작업을 엽니다');
     }); });
     GF_UI.$all('[data-pdup]').forEach(function (b) { b.addEventListener('click', function () {
       var nid = GF_STORE.duplicateProject(b.getAttribute('data-pdup'));
