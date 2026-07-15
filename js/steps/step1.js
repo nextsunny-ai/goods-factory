@@ -163,7 +163,8 @@ var GF_STEP1 = (function () {
       + '<div class="field" style="margin-top:10px"><label>어떤 걸 만들고 싶은지 (한두 줄) <small>있으면 더 정확</small></label>'
       + '<textarea id="ai-ipDesc" placeholder="예: 30~40대 레트로 게임 팬 대상 뮤지엄 기념 굿즈. 소장가치 있고 아기자기하게.">' + esc(p.ipDesc) + '</textarea></div>'
       + '<div style="margin-top:12px">' + GF_AI.enhanceBtn('aiEnhAuto', 'AI로 기획 자동 완성', 'text', '적은 IP·아이디어만으로 매력·타깃·추천 굿즈·컨셉·전략까지 기획을 완성합니다.') + '</div>'
-      + '<div style="margin-top:14px"><div style="font-size:12.5px;font-weight:700;color:var(--ink-2);margin-bottom:6px">AI에 붙여넣을 프롬프트 (내용 쓰면 자동 완성)</div><div id="ai-promptbox"></div></div>';
+      + '<div id="ai-result" style="margin-top:12px"></div>'
+      + '<div style="margin-top:14px"><div style="font-size:12.5px;font-weight:700;color:var(--ink-2);margin-bottom:6px">AI에 직접 붙여넣을 프롬프트 (연결 안 했을 때)</div><div id="ai-promptbox"></div></div>';
 
     function refresh() {
       var pb = GF_UI.$('#ai-promptbox');
@@ -174,9 +175,30 @@ var GF_STEP1 = (function () {
     descInp.addEventListener('input', function () { p.ipDesc = this.value; GF_STORE.save(); refresh(); });
     GF_AI.bindEnhance(box);
     var enh = GF_UI.$('#aiEnhAuto');
-    if (enh) enh.addEventListener('click', function () { GF_UI.toast('연결됨 — 자동 생성은 준비 중입니다. 지금은 프롬프트를 복사해 쓰세요'); });
+    if (enh) enh.addEventListener('click', runAutoPlan);
     refresh();
     nameInp.focus();
+  }
+
+  /* 제미나이로 실제 기획 자동 생성 */
+  function runAutoPlan() {
+    var p = GF_STORE.state.project.plan;
+    if (!p.ipName.trim()) { GF_UI.toast('먼저 "무슨 IP·브랜드로 만드나요?"를 써주세요'); var n = GF_UI.$('#ai-ipName'); if (n) n.focus(); return; }
+    if (!GF_AI.geminiOn()) { GF_AI.openPanel(); return; }
+    var out = GF_UI.$('#ai-result');
+    out.innerHTML = '<div class="note">AI가 기획을 작성 중입니다…</div>';
+    var prompt = GF_PROMPTS.step1ai(promptCtx())[0].text;
+    GF_AI.generateText(prompt).then(function (text) {
+      out.innerHTML = '<div class="card" style="box-shadow:none;border-color:var(--accent-line)">'
+        + '<div class="card-head" style="margin-bottom:8px"><h3 style="margin:0">✨ AI 기획 초안</h3>'
+        + '<button class="btn btn-xs btn-soft" id="aiPlanCopy">복사</button></div>'
+        + '<div id="aiPlanText" style="font-size:13px;white-space:pre-wrap;line-height:1.7;color:var(--ink)">' + esc(text) + '</div></div>';
+      var cp = GF_UI.$('#aiPlanCopy');
+      if (cp) cp.addEventListener('click', function () { GF_UI.copyText(text, '기획 초안을 복사했습니다'); });
+      GF_UI.toast('AI 기획 초안이 나왔습니다 — 아래 항목·다음 단계에 참고하세요');
+    }).catch(function (err) {
+      out.innerHTML = '<div class="note warn"><b>생성 실패 — ' + esc(String((err && err.message) || err)) + '</b><br>제미나이 키·권한을 확인하세요. (글 생성은 보통 무료 한도로 됩니다)</div>';
+    });
   }
 
   return { render: render, promptCtx: promptCtx };

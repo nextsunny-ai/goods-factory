@@ -14,22 +14,26 @@ var GF_STEP4 = (function () {
       + '</div>'
 
       + '<div class="card"><h3>추천 디자인 컨셉 — 골라만 주세요</h3>'
-      + '<p class="desc">입력한 IP 종류·타깃에 맞춰 어울리는 순서로 제안합니다. 카드를 고르면 아래 항목이 자동으로 채워지고, 원하면 직접 고칠 수 있습니다.</p>'
+      + '<p class="desc">입력한 IP 종류·타깃에 맞춰 <b>분위기·스타일 방향</b>을 제안합니다. 여기 색은 <b>참고용 힌트</b>일 뿐, 굿즈를 자동으로 그리거나 원작 색을 바꾸지 않습니다. 이 방향이 아래 이미지 <b>프롬프트에 반영</b>돼요.</p>'
       + '<div class="concept-grid" id="conceptGrid"></div>'
       + '</div>'
 
-      + '<div class="card"><h3>디자인 방향 (자동 입력 — 수정 가능)</h3>'
-      + '<div class="form-grid">'
-      + '  <div class="field"><label>디자인 컨셉 <small>한 줄로</small></label>'
+      + '<div class="card"><h3>디자인 방향 (수정 가능)</h3>'
+      + '<div class="note' + (d.keepColors !== false ? ' good' : '') + '" style="margin-top:0">'
+      + '<label style="display:flex;gap:9px;align-items:flex-start;cursor:pointer;font-size:13px">'
+      + '<input type="checkbox" id="d-keepColors"' + (d.keepColors !== false ? ' checked' : '') + ' style="margin-top:2px;width:16px;height:16px;accent-color:var(--green)">'
+      + '<span><b>원작 캐릭터·브랜드 고유 색 유지</b> — 켜두면(기본) 이미 색이 정해진 IP(예: Bub=초록, Bob=파랑)는 그 색을 지키고, 아래 "메인 컬러"는 무시합니다. <b>끄면</b> 아래 색으로 바꿉니다(새 창작·색을 바꿀 때만).</span></label></div>'
+      + '<div class="form-grid" style="margin-top:12px">'
+      + '  <div class="field"><label>디자인 컨셉 <small>분위기·스타일 방향</small></label>'
       + '    <input type="text" id="d-concept" placeholder="예: 레트로 아케이드 감성, 도트 그래픽" value="' + esc(d.concept) + '"></div>'
-      + '  <div class="field"><label>메인 컬러 <small>색 이름이나 HEX</small></label>'
+      + '  <div class="field"><label>메인 컬러 <small>"원작 색 유지" 끌 때만 적용</small></label>'
       + '    <input type="text" id="d-palette" placeholder="예: 하늘색+노랑, #7EC8E3" value="' + esc(d.palette) + '"></div>'
       + '  <div class="field"><label>분위기 키워드</label>'
       + '    <input type="text" id="d-mood" placeholder="예: 아기자기한, 따뜻한, 키치한" value="' + esc(d.mood) + '"></div>'
       + '  <div class="field"><label>스타일 키워드 <small>일러스트 시안용</small></label>'
       + '    <input type="text" id="d-keywords" placeholder="예: 픽셀아트, 벡터 일러스트, 수채화" value="' + esc(d.keywords) + '"></div>'
       + '</div>'
-      + '<div class="note"><b>팁:</b> 실제 IP 이미지(원작 스프라이트·공식 일러스트)가 있다면 프롬프트와 함께 <b>레퍼런스 이미지로 첨부</b>하세요. 시리즈 일관성이 완전히 달라집니다.</div>'
+      + '<div class="note"><b>팁:</b> 실제 IP 이미지(원작 스프라이트·공식 일러스트)가 있다면 프롬프트와 함께 <b>레퍼런스 이미지로 첨부</b>하세요(아래 "레퍼런스 이미지"). 원작 색·형태가 훨씬 정확해집니다.</div>'
       + '</div>'
 
       + '<div class="card"><h3>레퍼런스 이미지 <small style="font-weight:400;color:var(--ink-3)">— 선택</small></h3>'
@@ -75,6 +79,12 @@ var GF_STEP4 = (function () {
       var inp = $('#d-' + key);
       inp.addEventListener('input', function () { d[key] = this.value; GF_STORE.save(); });
       inp.addEventListener('blur', renderImgPrompts);
+    });
+    var kc = $('#d-keepColors');
+    if (kc) kc.addEventListener('change', function () {
+      d.keepColors = this.checked; GF_STORE.save(); renderImgPrompts();
+      var note = this.closest('.note'); if (note) note.classList.toggle('good', this.checked);
+      GF_UI.toast(this.checked ? '원작 캐릭터·브랜드 색을 유지합니다' : '아래 "메인 컬러"로 바꿔 생성합니다');
     });
 
     GF_UI.$all('[data-style]').forEach(function (chip) {
@@ -215,6 +225,9 @@ var GF_STEP4 = (function () {
     var ipLine = plan.ipName
       ? '"' + plan.ipName + '" IP 굿즈이고' + (plan.ipDesc ? ' (' + plan.ipDesc + ')' : '') + (d.concept ? ', 디자인 컨셉은 ' + d.concept + '.' : '.')
       : (d.concept ? '디자인 컨셉은 ' + d.concept + '.' : '');
+    /* 원작 색 유지 여부 — 기존 IP는 캐릭터/브랜드 고유 색을 지키는 게 기본 */
+    var keep = d.keepColors !== false;
+    ipLine += keep ? ' 원작 캐릭터·브랜드 고유 색은 그대로 지켜줘.' : (d.palette ? ' 전체 색감은 ' + d.palette + ' 계열로.' : '');
     ipLine += refHint;
 
     var tone = GF_TARGET_TONE[plan.target] || GF_TARGET_TONE.general;
@@ -230,7 +243,7 @@ var GF_STEP4 = (function () {
         var ctx = {
           goodsName: (plan.ipName ? plan.ipName + ' ' : '') + c.name,
           ipLine: ipLine, material: c.spec,
-          mood: d.mood, palette: d.palette, styleLine: d.keywords,
+          mood: d.mood, palette: keep ? '' : d.palette, styleLine: d.keywords,
           views: det.views,
           appeals: (det.appeals || []).concat(d.keywords ? [d.keywords] : []).join(', '),
           tone: tone, guard: GF_IMG_GUARD

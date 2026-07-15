@@ -26,16 +26,16 @@ var GF_AI = (function () {
   }
 
   /* AI 강화 버튼 HTML — kind: 'text'(글) | 'image'(이미지)
-     연결 안 됨 = 비활성 + 안내. 연결됨 = 활성(실행은 v1.3 안내) */
+     글=제미나이/Claude 중 하나면 OK, 이미지=제미나이. 연결 안 됨 = 비활성 + 안내 */
   function enhanceBtn(id, label, kind, benefit) {
-    var ok = kind === 'image' ? geminiOn() : claudeOn();
-    var needLabel = kind === 'image' ? '제미나이 연결 필요' : 'Claude 구독 연결 필요';
+    var ok = kind === 'image' ? geminiOn() : (claudeOn() || geminiOn());
+    var needLabel = kind === 'image' ? '제미나이 연결 필요' : 'AI 연결 필요';
     return '<div class="ai-enhance" data-aikind="' + kind + '">'
       + '<button class="btn btn-ai btn-sm" id="' + id + '"' + (ok ? '' : ' disabled') + '>'
       + '✨ ' + label + (ok ? '' : ' <span style="opacity:.8">· ' + needLabel + '</span>') + '</button>'
       + '<div class="ai-hint">' + (ok
-          ? '<b>연결됨.</b> 이 버튼을 누르면 ' + benefit + ' <b>(자동 생성 연동은 v1.3에서 제공)</b> — 지금은 프롬프트를 복사해 쓰시면 같은 결과를 얻습니다.'
-          : '기본 결과는 <b>지금도 나옵니다.</b> ' + (kind === 'image' ? '제미나이를 연결하면' : 'Claude 구독을 연결하면') + ' ' + benefit + ' <button class="btn btn-xs btn-soft" data-openai="1" style="margin-left:4px">AI 연결하기</button>')
+          ? '<b>연결됨.</b> 누르면 AI가 ' + benefit
+          : '기본 결과는 <b>지금도 나옵니다.</b> AI를 연결하면 ' + benefit + ' <button class="btn btn-xs btn-soft" data-openai="1" style="margin-left:4px">AI 연결하기</button>')
       + '</div></div>';
   }
   function bindEnhance(root) {
@@ -48,23 +48,20 @@ var GF_AI = (function () {
   function openPanel() {
     var s = state();
     var body = ''
-      + '<p style="font-size:13.5px;color:var(--ink-2);margin-bottom:16px">AI를 연결하면 기획·카피·이미지를 자동으로 채워줍니다. <b>연결 없이도 모든 기능(프롬프트 복사 방식)은 그대로 사용</b>할 수 있습니다.</p>'
+      + '<p style="font-size:13.5px;color:var(--ink-2);margin-bottom:16px">AI를 연결하면 기획·카피·이미지를 <b>앱에서 바로 자동 생성</b>합니다. 연결 없이도 모든 기능(프롬프트 복사)은 그대로 씁니다.</p>'
 
       + '<div class="card" style="box-shadow:none;margin-bottom:14px">'
-      + '<div class="oc-top" style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><div class="oc-ico" style="width:30px;height:30px;background:#EDE7FF;color:#6A4BD6">✍️</div>'
-      + '<h3 style="font-size:15px;font-weight:800">글 작업 — Claude 구독 로그인 <span class="ai-tag">추천</span></h3></div>'
-      + '<p style="font-size:12.5px;color:var(--ink-2)">기획·시장분석·상세페이지 카피·제안서 문구를 자동 작성. <b>본인 Claude 구독으로 로그인</b>하므로 추가 비용이 없습니다.</p>'
-      + '<div style="margin-top:10px">' + (claudeOn()
-          ? '<span class="note good" style="margin:0;display:inline-block">✓ 연결됨</span> <button class="btn btn-xs btn-ghost" id="aiClaudeOff">연결 해제</button>'
-          : '<button class="btn btn-sm btn-dark" id="aiClaudeOn">Claude 구독 로그인</button> <span style="font-size:11.5px;color:var(--ink-3)">— 실제 로그인 연동은 v1.3 제공 예정</span>')
-      + '</div></div>'
+      + '<div class="oc-top" style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><div class="oc-ico" style="width:30px;height:30px">✨</div>'
+      + '<h3 style="font-size:15px;font-weight:800">제미나이 키 <span class="ai-tag">글·이미지 지금 가능</span></h3></div>'
+      + '<p style="font-size:12.5px;color:var(--ink-2)">키 하나로 <b>글(기획·카피) + 이미지</b>를 지금 바로 자동 생성. 키 발급 무료(1분), <b>글은 무료 한도로 되고 이미지 생성은 구글 결제 등록</b>이 필요합니다. 키는 이 브라우저에만 저장됩니다.</p>'
+      + '<div class="field" style="margin-top:10px"><input type="text" id="aiGeminiKey" placeholder="제미나이 API 키 붙여넣기" value="' + GF_UI.esc(s.geminiKey || '') + '"></div>'
+      + '<div style="margin-top:8px;font-size:11.5px;color:var(--ink-3)">키 발급: aistudio.google.com → API 키 만들기' + (geminiOn() ? ' · <span style="color:var(--green);font-weight:700">연결됨</span>' : '') + '</div>'
+      + '</div>'
 
       + '<div class="card" style="box-shadow:none;margin-bottom:6px">'
-      + '<div class="oc-top" style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><div class="oc-ico" style="width:30px;height:30px">🖼️</div>'
-      + '<h3 style="font-size:15px;font-weight:800">이미지 생성 — 제미나이 키</h3></div>'
-      + '<p style="font-size:12.5px;color:var(--ink-2)">이미지는 구독 연결이 공식 지원되지 않아 <b>제미나이 API 키</b>가 필요합니다. 키 발급은 무료(1분), 다만 이미지 생성은 구글 클라우드 <b>결제 등록</b>이 필요합니다. 키는 이 브라우저에만 저장됩니다.</p>'
-      + '<div class="field" style="margin-top:10px"><input type="text" id="aiGeminiKey" placeholder="제미나이 API 키 붙여넣기" value="' + GF_UI.esc(s.geminiKey || '') + '"></div>'
-      + '<div style="margin-top:8px;font-size:11.5px;color:var(--ink-3)">키 발급: aistudio.google.com → API 키 만들기</div>'
+      + '<div class="oc-top" style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><div class="oc-ico" style="width:30px;height:30px;background:#EDE7FF;color:#6A4BD6">🖥️</div>'
+      + '<h3 style="font-size:15px;font-weight:800">Claude 구독 로그인 <span class="ai-tag">데스크톱 앱 예정</span></h3></div>'
+      + '<p style="font-size:12.5px;color:var(--ink-2)"><b>본인 Claude 구독</b>으로 글을 더 좋은 품질로, <b>추가 비용 없이</b> 자동 작성. 단, 구독 로그인은 브라우저(웹)에선 불가하고 <b>데스크톱 앱(.exe)</b>에서만 됩니다 — 그래서 데스크톱 버전에서 제공됩니다. 그 전까지 글 자동화는 위 제미나이로 하시면 됩니다.</p>'
       + '</div>'
 
       + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">'
@@ -118,6 +115,34 @@ var GF_AI = (function () {
     });
   }
 
+  /* ---- 제미나이 글(텍스트) 생성 ---- */
+  var TEXT_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+  function generateText(prompt, modelIdx) {
+    var key = state().geminiKey;
+    if (!key) return Promise.reject(new Error('제미나이 키가 없습니다 (앱 AI 연결 패널에 입력)'));
+    modelIdx = modelIdx || 0;
+    var model = TEXT_MODELS[modelIdx];
+    if (!model) return Promise.reject(new Error('사용 가능한 텍스트 모델을 찾지 못했습니다 (키·권한 확인)'));
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key);
+    return fetch(url, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    }).then(function (res) {
+      return res.json().then(function (j) { return { ok: res.ok, status: res.status, j: j }; });
+    }).then(function (r) {
+      if (!r.ok) {
+        var msg = (r.j && r.j.error && r.j.error.message) || ('HTTP ' + r.status);
+        if ((r.status === 404 || /not found|not supported/i.test(msg)) && TEXT_MODELS[modelIdx + 1]) return generateText(prompt, modelIdx + 1);
+        throw new Error(msg);
+      }
+      var cand = r.j.candidates && r.j.candidates[0];
+      var parts = (cand && cand.content && cand.content.parts) || [];
+      var text = parts.map(function (p) { return p.text || ''; }).join('').trim();
+      if (!text) throw new Error('응답이 비었습니다 (프롬프트를 바꿔보세요)');
+      return text;
+    });
+  }
+
   return { refreshPill: refreshPill, openPanel: openPanel, enhanceBtn: enhanceBtn, bindEnhance: bindEnhance,
-    claudeOn: claudeOn, geminiOn: geminiOn, anyOn: anyOn, generateImage: generateImage };
+    claudeOn: claudeOn, geminiOn: geminiOn, anyOn: anyOn, generateImage: generateImage, generateText: generateText };
 })();

@@ -180,6 +180,23 @@ var GF_APP = (function () {
     $('#projectName').value = GF_STORE.state.project.name;
     GF_AI.refreshPill();
     go('home');
+    checkVersion();
+  }
+
+  /* 새 버전 알림 — 서버 version.json이 내 버전보다 새로우면 배너 */
+  function checkVersion() {
+    var banner = $('#versionBanner');
+    if (!banner) return;
+    var cur = (typeof GF_VERSION !== 'undefined') ? GF_VERSION : null;
+    fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (j && j.version && cur && j.version !== cur) {
+          banner.classList.remove('hidden');
+          $('#btnReload').addEventListener('click', function () { location.reload(true); });
+          $('#btnVerDismiss').addEventListener('click', function () { banner.classList.add('hidden'); });
+        }
+      }).catch(function () {});
   }
 
   document.addEventListener('DOMContentLoaded', init);

@@ -41,7 +41,10 @@ var GF_HOME = (function () {
       + '<div class="home-current">'
       + '  <div><span style="font-size:12px;color:var(--ink-3)">지금 프로젝트</span><br><b>' + esc(p.name || '새 프로젝트') + '</b>'
       + (p.plan.ipName ? ' · ' + esc(p.plan.ipName) : '') + (p.goods.length ? ' · 굿즈 ' + p.goods.length + '종' : '') + '</div>'
-      + '  <button class="btn btn-ghost btn-sm" id="homeProjects">내 프로젝트 목록</button>'
+      + '  <div style="display:flex;align-items:center;gap:10px">'
+      + '    <span style="font-size:11.5px;color:var(--ink-4)">' + (typeof GF_VERSION !== 'undefined' ? 'v' + GF_VERSION : '') + '</span>'
+      + '    <button class="btn btn-ghost btn-sm" id="homeProjects">내 프로젝트 목록</button>'
+      + '  </div>'
       + '</div>';
 
     root.innerHTML = html;
