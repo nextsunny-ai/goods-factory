@@ -19,7 +19,7 @@
 
 ## 🚀 사용 방법
 
-1. **바로 쓰기**: [GitHub Pages 링크] 접속, 또는 `index.html`을 브라우저로 열기
+1. **바로 쓰기**: https://nextsunny-ai.github.io/goods-factory/ 접속, 또는 `index.html`을 브라우저로 열기
 2. 왼쪽 위 단계 탭을 따라 입력
 3. 마지막 "산출물" 단계에서 문서를 열어 보고 저장
 
